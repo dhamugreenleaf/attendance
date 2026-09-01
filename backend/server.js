@@ -11,6 +11,9 @@ import departmentRoutes from "./src/modules/department/department.routes.js";
 import teamRoutes from "./src/modules/team/team.routes.js";
 import employeeRoutes from "./src/modules/employee/employee.routes.js";
 import attendanceRoutes from "./src/modules/attendance/attendance.routes.js";
+import leaveRoutes from "./src/modules/leave/leave.routes.js";
+import permissionRoutes from "./src/modules/permission/permission.routes.js";
+
 
 dotenv.config();
 
@@ -57,6 +60,9 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/teams", teamRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/leaves", leaveRoutes);
+app.use("/api/permissions", permissionRoutes);
+
 
 // Global Error Handler
 app.use((err, req, res, next) => {

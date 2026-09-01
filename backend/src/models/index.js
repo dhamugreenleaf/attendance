@@ -5,6 +5,8 @@ import Department from "../modules/department/department.model.js";
 import Team from "../modules/team/team.model.js";
 import Employee from "../modules/employee/employee.model.js";
 import Attendance from "../modules/attendance/attendance.model.js";
+import Leave from "../modules/leave/leave.model.js";
+import Permission from "../modules/permission/permission.model.js";
 
 // --- Relationships ---
 
@@ -28,6 +30,16 @@ Employee.belongsTo(Team, { foreignKey: "teamId", as: "team" });
 Employee.hasMany(Attendance, { foreignKey: "employeeId", as: "attendanceRecords", onDelete: "CASCADE" });
 Attendance.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
 
+// Employee 1:N Leave
+Employee.hasMany(Leave, { foreignKey: "employeeId", as: "leaves", onDelete: "CASCADE" });
+Leave.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
+Leave.belongsTo(User, { foreignKey: "approverId", as: "approver" });
+
+// Employee 1:N Permission
+Employee.hasMany(Permission, { foreignKey: "employeeId", as: "permissions", onDelete: "CASCADE" });
+Permission.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
+Permission.belongsTo(User, { foreignKey: "approverId", as: "approver" });
+
 
 export {
     sequelize,
@@ -35,5 +47,7 @@ export {
     Department,
     Team,
     Employee,
-    Attendance
+    Attendance,
+    Leave,
+    Permission
 };
