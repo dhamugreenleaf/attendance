@@ -1,16 +1,51 @@
 import * as employeeRepo from "./employee.repository.js";
 import * as userRepo from "../user/user.repository.js";
 import * as teamRepo from "../team/team.repository.js";
+import * as userService from "../user/user.service.js";
 
-const createEmployee = async (data) => {
-    const user = await userRepo.findById(data.userId);
+const createEmployee = async (data, reqUser = null) => {
+    let userId = data.userId;
+
+    if (data.phone) {
+        const phoneExists = await employeeRepo.findByPhone(data.phone);
+        if (phoneExists) {
+            const err = new Error("An employee with this phone number already exists.");
+            err.statusCode = 400;
+            throw err;
+        }
+    }
+
+    if (!userId) {
+        if (!data.name || !data.phone) {
+            const err = new Error("Name and phone are required to create a new employee");
+            err.statusCode = 400;
+            throw err;
+        }
+
+        const username = data.name.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 10000);
+        const email = data.email || `${username}@example.com`;
+        const password = data.password || "password123";
+
+        const newUser = await userService.createUser({
+            name: data.name,
+            username,
+            email,
+            password,
+            role: "EMPLOYEE",
+            status: "ACTIVE",
+            isTemporaryPassword: true
+        });
+        userId = newUser.id;
+    }
+
+    const user = await userRepo.findById(userId);
     if (!user) {
         const err = new Error("User not found");
         err.statusCode = 404;
         throw err;
     }
 
-    const existing = await employeeRepo.findByUserId(data.userId);
+    const existing = await employeeRepo.findByUserId(userId);
     if (existing) {
         const err = new Error("Employee profile already exists for this user");
         err.statusCode = 409;
@@ -24,9 +59,18 @@ const createEmployee = async (data) => {
             err.statusCode = 404;
             throw err;
         }
+    } else if (reqUser && reqUser.role === 'TL') {
+        // Automatically assign to the TL's team if they didn't provide one
+        const tlTeam = await teamRepo.findByManagerId(reqUser.id);
+        if (tlTeam) {
+            data.teamId = tlTeam.id;
+        }
     }
 
-    return await employeeRepo.create(data);
+    const approvalStatus = (reqUser && reqUser.role === 'TL') ? 'PENDING' : 'APPROVED';
+
+    const employeeData = { ...data, userId, approvalStatus };
+    return await employeeRepo.create(employeeData);
 };
 
 const getEmployees = async () => {
@@ -43,12 +87,37 @@ const getEmployeeById = async (id) => {
     return employee;
 };
 
-const updateEmployee = async (id, data) => {
+const updateEmployee = async (id, data, user = null) => {
     const employee = await employeeRepo.findById(id);
     if (!employee) {
         const err = new Error("Employee not found");
         err.statusCode = 404;
         throw err;
+    }
+
+    if (data.phone && data.phone !== employee.phone) {
+        const phoneExists = await employeeRepo.findByPhone(data.phone);
+        if (phoneExists) {
+            const err = new Error("An employee with this phone number already exists.");
+            err.statusCode = 400;
+            throw err;
+        }
+    }
+
+    if (user && user.role === 'TL') {
+        if (employee.team?.managerId !== user.id) {
+            const err = new Error("Not authorized to update this employee");
+            err.statusCode = 403;
+            throw err;
+        }
+        // TL can only modify specific fields
+        const allowedData = {};
+        if (data.designation !== undefined) allowedData.designation = data.designation;
+        if (data.phone !== undefined) allowedData.phone = data.phone;
+        // TL can remove from team, but not assign to other teams
+        if (data.teamId === null) allowedData.teamId = null;
+        if (data.name) allowedData.name = data.name; // We handle name below
+        data = allowedData;
     }
 
     if (data.teamId && data.teamId !== employee.teamId) {
@@ -67,6 +136,16 @@ const updateEmployee = async (id, data) => {
             err.statusCode = 409;
             throw err;
         }
+    }
+    
+    // Update name in user model if provided
+    if (data.name && employee.userId) {
+        const empUser = await userRepo.findById(employee.userId);
+        if (empUser) {
+            empUser.name = data.name;
+            await empUser.save();
+        }
+        delete data.name; // don't pass to employee update
     }
 
     return await employeeRepo.update(employee, data);

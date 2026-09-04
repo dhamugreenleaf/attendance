@@ -11,6 +11,7 @@ const createUser = async (userData) => {
         password,
         role,
         status,
+        isTemporaryPassword
     } = userData;
 
     // Check username
@@ -43,6 +44,7 @@ const createUser = async (userData) => {
         password: hashedPassword,
         role,
         status,
+        isTemporaryPassword: isTemporaryPassword || false
     });
 
     // Never return password

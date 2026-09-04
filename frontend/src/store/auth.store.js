@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }) => {
         
         setUser(userData);
         setIsAuthenticated(true);
-        return { success: true };
+        return { success: true, user: userData };
       }
       return { success: false, message: res.message || 'Login failed' };
     } catch (error) {

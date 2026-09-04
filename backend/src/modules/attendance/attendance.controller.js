@@ -1,5 +1,5 @@
 import * as attendanceService from "./attendance.service.js";
-import { punchInSchema, punchOutSchema } from "./attendance.zod.js";
+import { punchInSchema, punchOutSchema, bulkMarkSchema, teamAttendanceQuerySchema } from "./attendance.zod.js";
 
 const punchIn = async (req, res, next) => {
     try {
@@ -40,4 +40,41 @@ const getMyAttendance = async (req, res, next) => {
     }
 };
 
-export { punchIn, punchOut, getAllAttendance, getMyAttendance };
+const bulkMark = async (req, res, next) => {
+    try {
+        const data = bulkMarkSchema.parse(req.body);
+        const result = await attendanceService.bulkMark(data.date, data.records);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getTeamAttendance = async (req, res, next) => {
+    try {
+        const teamId = parseInt(req.params.teamId, 10);
+        const { date } = teamAttendanceQuerySchema.parse(req.query);
+        const queryDate = date || new Date().toISOString().split('T')[0];
+        
+        const result = await attendanceService.getTeamAttendance(teamId, queryDate);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const getEmployeeAttendanceSummary = async (req, res, next) => {
+    try {
+        const employeeId = parseInt(req.params.employeeId, 10);
+        const { year, month } = req.query; // optional, defaults to current month
+        const targetYear = year ? parseInt(year, 10) : new Date().getFullYear();
+        const targetMonth = month ? parseInt(month, 10) : new Date().getMonth() + 1;
+
+        const result = await attendanceService.getEmployeeAttendanceSummary(employeeId, targetYear, targetMonth);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { punchIn, punchOut, getAllAttendance, getMyAttendance, bulkMark, getTeamAttendance, getEmployeeAttendanceSummary };

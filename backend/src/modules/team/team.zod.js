@@ -2,8 +2,9 @@ import { z } from "zod";
 
 const createTeamSchema = z.object({
     name: z.string().trim().min(2).max(100),
-    departmentId: z.coerce.number().int().positive(),
-    managerId: z.coerce.number().int().positive().optional(),
+    managerName: z.string().trim().optional(),
+    employeeCount: z.coerce.number().int().min(0).optional(),
+    employeeIds: z.array(z.number().int().positive()).optional(),
     status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
 });
 

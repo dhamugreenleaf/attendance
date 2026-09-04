@@ -6,8 +6,9 @@ import { TeamForm } from '../../../../components/team/TeamForm';
 import { Loading } from '../../../../components/ui/Loading';
 import { ErrorState } from '../../../../components/ui/ErrorState';
 import { Button } from '../../../../components/ui/Button';
+import { Card } from '../../../../components/ui/Card';
 import { colors } from '../../../../styles/colors';
-import { spacing } from '../../../../styles/spacing';
+import { spacing, radius, shadows } from '../../../../styles/spacing';
 import { typography } from '../../../../styles/typography';
 
 export default function TeamDetailsScreen() {
@@ -75,8 +76,7 @@ export default function TeamDetailsScreen() {
         <TeamForm 
           defaultValues={{
             name: team.name,
-            departmentId: team.departmentId,
-            managerId: team.managerId || '',
+            managerName: team.manager?.name || '',
             status: team.status
           }}
           onSubmit={handleUpdate}
@@ -88,10 +88,10 @@ export default function TeamDetailsScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.detailsContainer}>
+      <Card style={styles.detailsContainer}>
         <View style={styles.headerRow}>
           <Text style={styles.teamName}>{team.name}</Text>
-          <View style={[styles.badge, { backgroundColor: team.status === 'ACTIVE' ? '#D1FAE5' : '#FEE2E2' }]}>
+          <View style={[styles.badge, { backgroundColor: team.status === 'ACTIVE' ? colors.successLight : colors.errorLight }]}>
             <Text style={[styles.badgeText, { color: team.status === 'ACTIVE' ? colors.success : colors.error }]}>
               {team.status}
             </Text>
@@ -99,13 +99,8 @@ export default function TeamDetailsScreen() {
         </View>
 
         <View style={styles.infoGroup}>
-          <Text style={styles.label}>Department ID</Text>
-          <Text style={styles.value}>{team.departmentId}</Text>
-        </View>
-
-        <View style={styles.infoGroup}>
-          <Text style={styles.label}>Manager ID</Text>
-          <Text style={styles.value}>{team.managerId || 'Unassigned'}</Text>
+          <Text style={styles.label}>Team Head Name</Text>
+          <Text style={styles.value}>{team.manager?.name || 'Unassigned'}</Text>
         </View>
 
         {team.members && (
@@ -128,10 +123,10 @@ export default function TeamDetailsScreen() {
             onPress={handleDelete} 
             icon="delete"
             style={styles.actionButton}
-            loading={deleteTeamMutation.isPending}
+            isLoading={deleteTeamMutation.isPending}
           />
         </View>
-      </View>
+      </Card>
     </ScrollView>
   );
 }
@@ -155,11 +150,7 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
   },
   detailsContainer: {
-    padding: spacing.lg,
-    backgroundColor: colors.surface,
     margin: spacing.md,
-    borderRadius: 8,
-    boxShadow: '0px 1px 4px rgba(0, 0, 0, 0.05)',
   },
   headerRow: {
     flexDirection: 'row',
@@ -175,7 +166,7 @@ const styles = StyleSheet.create({
   badge: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: radius.full,
   },
   badgeText: {
     fontSize: typography.fontSize.xs,
@@ -186,7 +177,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: typography.fontSize.sm,
-    color: colors.textMuted,
+    color: colors.textSecondary,
     marginBottom: 4,
   },
   value: {

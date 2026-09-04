@@ -1,7 +1,8 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
+import { spacing, radius } from '../../styles/spacing';
 import { typography } from '../../styles/typography';
 
 export const Button = ({ 
@@ -10,6 +11,7 @@ export const Button = ({
   variant = 'primary', 
   isLoading = false, 
   disabled = false,
+  icon,
   style
 }) => {
   const getBackgroundColor = () => {
@@ -39,7 +41,10 @@ export const Button = ({
       {isLoading ? (
         <ActivityIndicator color={getTextColor()} />
       ) : (
-        <Text style={[styles.text, { color: getTextColor() }]}>{title}</Text>
+        <>
+          {icon && <MaterialIcons name={icon} size={20} color={getTextColor()} style={styles.icon} />}
+          <Text style={[styles.text, { color: getTextColor() }]}>{title}</Text>
+        </>
       )}
     </TouchableOpacity>
   );
@@ -48,7 +53,7 @@ export const Button = ({
 const styles = StyleSheet.create({
   button: {
     height: 48,
-    borderRadius: 8,
+    borderRadius: radius.md,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
@@ -57,5 +62,8 @@ const styles = StyleSheet.create({
   text: {
     fontSize: typography.fontSize.md,
     fontWeight: typography.fontWeight.semibold,
+  },
+  icon: {
+    marginRight: spacing.sm,
   }
 });

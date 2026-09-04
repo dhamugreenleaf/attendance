@@ -10,7 +10,7 @@ const findAll = async () => {
     return await Employee.findAll({
         include: [
             { model: User, as: "user", attributes: ["id", "name", "email", "role"] },
-            { model: Team, as: "team", attributes: ["id", "name"] },
+            { model: Team, as: "team", attributes: ["id", "name", "managerId"] },
         ],
         order: [["id", "DESC"]],
     });
@@ -20,7 +20,7 @@ const findById = async (id) => {
     return await Employee.findByPk(id, {
         include: [
             { model: User, as: "user", attributes: ["id", "name", "email", "role"] },
-            { model: Team, as: "team", attributes: ["id", "name"] },
+            { model: Team, as: "team", attributes: ["id", "name", "managerId"] },
         ],
     });
 };
@@ -37,4 +37,8 @@ const remove = async (employee) => {
     return await employee.destroy();
 };
 
-export { create, findAll, findById, findByUserId, update, remove };
+const findByPhone = async (phone) => {
+    return await Employee.findOne({ where: { phone } });
+};
+
+export { create, findAll, findById, findByUserId, findByPhone, update, remove };

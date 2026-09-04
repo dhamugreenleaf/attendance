@@ -13,7 +13,7 @@ import { spacing } from '../../styles/spacing';
 import { typography } from '../../styles/typography';
 
 const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  username: z.string().min(1, 'Username is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -29,8 +29,8 @@ export default function Login() {
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
-      password: '',
+      username: 'sanjay',
+      password: 'password123',
     },
   });
 
@@ -39,10 +39,11 @@ export default function Login() {
     const result = await login(data);
     setIsSubmitting(false);
 
-    if (result.success) {
-      router.replace('/(app)/dashboard');
+    if (result.success && result.user) {
+      const role = result.user.role.toLowerCase();
+      router.replace(`/(app)/${role}/dashboard`);
     } else {
-      Alert.alert('Login Failed', result.message || 'Invalid credentials.');
+      Alert.alert('Login Failed', result.message || 'Invalid username or password.');
     }
   };
 
@@ -60,17 +61,16 @@ export default function Login() {
         <Card style={styles.card}>
           <Controller
             control={control}
-            name="email"
+            name="username"
             render={({ field: { onChange, onBlur, value } }) => (
               <Input
-                label="Email"
-                placeholder="Enter your email"
+                label="Username"
+                placeholder="Enter your username"
                 autoCapitalize="none"
-                keyboardType="email-address"
                 onBlur={onBlur}
                 onChangeText={onChange}
                 value={value}
-                error={errors.email?.message}
+                error={errors.username?.message}
               />
             )}
           />
@@ -97,6 +97,11 @@ export default function Login() {
             isLoading={isSubmitting} 
             style={styles.submitButton}
           />
+          
+          <View style={styles.signupContainer}>
+            <Text style={styles.signupText}>Don't have an account? </Text>
+            <Text style={styles.signupLink} onPress={() => router.push('/(auth)/signup')}>Sign Up</Text>
+          </View>
         </Card>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -136,5 +141,19 @@ const styles = StyleSheet.create({
   submitButton: {
     marginTop: spacing.md,
   },
+  signupContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: spacing.lg,
+  },
+  signupText: {
+    color: colors.textSecondary,
+    fontSize: typography.fontSize.md,
+  },
+  signupLink: {
+    color: colors.primary,
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.bold,
+  }
 });
 

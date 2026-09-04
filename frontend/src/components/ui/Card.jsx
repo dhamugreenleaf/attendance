@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
+import { spacing, radius, shadows } from '../../styles/spacing';
 
 export const Card = ({ children, style }) => {
   return (
@@ -14,10 +14,10 @@ export const Card = ({ children, style }) => {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 12,
+    borderRadius: radius.lg,
     padding: spacing.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.05)',
+    ...shadows.sm,
   }
 });

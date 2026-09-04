@@ -30,6 +30,11 @@ const Employee = sequelize.define(
             type: DataTypes.DATEONLY,
             allowNull: true,
         },
+        approvalStatus: {
+            type: DataTypes.ENUM("APPROVED", "PENDING", "REJECTED"),
+            allowNull: false,
+            defaultValue: "APPROVED",
+        },
     },
     {
         tableName: "employees",

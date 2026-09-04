@@ -6,3 +6,28 @@ export const spacing = {
   xl: 32,
   xxl: 48,
 };
+
+export const radius = {
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  full: 9999,
+};
+
+export const shadows = {
+  sm: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  md: {
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+};

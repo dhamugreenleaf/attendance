@@ -52,6 +52,12 @@ const User = sequelize.define(
             allowNull: false,
             defaultValue: "ACTIVE",
         },
+
+        isTemporaryPassword: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+            defaultValue: false,
+        },
     },
     {
         tableName: "users",

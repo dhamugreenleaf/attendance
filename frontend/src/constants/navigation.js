@@ -23,8 +23,9 @@ export const BOTTOM_TABS = {
   ],
   [ROLES.TL]: [
     { name: 'dashboard', title: 'Dashboard', icon: 'dashboard' },
-    { name: 'team', title: 'Team', icon: 'groups' },
-    { name: 'attendance', title: 'Attendance', icon: 'event-available' },
+    { name: 'team', title: 'My Team', icon: 'groups' },
+    { name: 'attendance', title: 'Attendance', icon: 'check-circle' },
+    { name: 'shift', title: 'Shifts', icon: 'schedule' },
     { name: 'profile', title: 'Profile', icon: 'person' },
   ],
   [ROLES.EMPLOYEE]: [

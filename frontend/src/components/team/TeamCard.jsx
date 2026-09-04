@@ -1,54 +1,44 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Card } from '../ui/Card';
 import { colors } from '../../styles/colors';
-import { spacing } from '../../styles/spacing';
 import { typography } from '../../styles/typography';
+import { spacing, radius } from '../../styles/spacing';
 
 export const TeamCard = ({ team, onPress }) => {
-  if (!team) return null;
-
+  const presentCount = team?.attendanceSummary?.present || 0;
+  const lateCount = team?.attendanceSummary?.late || 0;
+  const absentCount = team?.attendanceSummary?.absent || 0;
+  
   return (
-    <Pressable onPress={onPress}>
+    <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
       <Card style={styles.card}>
         <View style={styles.header}>
-          <Text style={styles.name}>{team.name}</Text>
-          <View style={[
-            styles.statusBadge, 
-            { backgroundColor: team.status === 'ACTIVE' ? '#D1FAE5' : '#FEE2E2' }
-          ]}>
-            <Text style={[
-              styles.statusText, 
-              { color: team.status === 'ACTIVE' ? colors.success : colors.error }
-            ]}>
-              {team.status}
-            </Text>
-          </View>
+          <Text style={styles.teamName}>{team.name}</Text>
         </View>
-
-        <View style={styles.detailsContainer}>
-          <View style={styles.detailRow}>
-            <MaterialIcons name="domain" size={16} color={colors.textMuted} />
-            <Text style={styles.detailText}>Dept ID: {team.departmentId}</Text>
-          </View>
-          <View style={styles.detailRow}>
-            <MaterialIcons name="person" size={16} color={colors.textMuted} />
-            <Text style={styles.detailText}>
-              Manager ID: {team.managerId || 'Unassigned'}
-            </Text>
-          </View>
-          {team.members && (
-            <View style={styles.detailRow}>
-              <MaterialIcons name="groups" size={16} color={colors.textMuted} />
-              <Text style={styles.detailText}>
-                Members: {team.members.length}
-              </Text>
-            </View>
-          )}
+        
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>Team Head</Text>
+          <Text style={styles.value}>{team.manager?.name || 'Not Assigned'}</Text>
+        </View>
+        
+        <View style={styles.infoRow}>
+          <Text style={styles.label}>Members</Text>
+          <Text style={styles.value}>{team.employeeCount || 0} Employees</Text>
+        </View>
+        
+        <View style={styles.divider} />
+        
+        <Text style={styles.attendanceTitle}>Today's Attendance</Text>
+        <View style={styles.attendanceSummary}>
+          <Text style={[styles.summaryText, { color: colors.success }]}>{presentCount} Present</Text>
+          <Text style={styles.summaryDot}>·</Text>
+          <Text style={[styles.summaryText, { color: colors.warning }]}>{lateCount} Late</Text>
+          <Text style={styles.summaryDot}>·</Text>
+          <Text style={[styles.summaryText, { color: colors.error }]}>{absentCount} Absent</Text>
         </View>
       </Card>
-    </Pressable>
+    </TouchableOpacity>
   );
 };
 
@@ -57,35 +47,49 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: spacing.md,
   },
-  name: {
-    fontSize: typography.fontSize.md,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.textPrimary,
+  teamName: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.semibold,
+    color: colors.primary,
   },
-  statusBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: typography.fontSize.xs,
-    fontWeight: typography.fontWeight.bold,
-  },
-  detailsContainer: {
-    gap: spacing.xs,
-  },
-  detailRow: {
+  infoRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
   },
-  detailText: {
+  label: {
     fontSize: typography.fontSize.sm,
     color: colors.textSecondary,
+  },
+  value: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.textPrimary,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: colors.divider,
+    marginVertical: spacing.md,
+  },
+  attendanceTitle: {
+    fontSize: typography.fontSize.xs,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  attendanceSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  summaryText: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+  },
+  summaryDot: {
+    marginHorizontal: spacing.sm,
+    color: colors.textMuted,
   }
 });

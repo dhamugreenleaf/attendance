@@ -11,6 +11,9 @@ export default function Index() {
   }
 
   if (isAuthenticated && user?.role) {
+    if (user.isTemporaryPassword) {
+      return <Redirect href="/(app)/force-change-password" />;
+    }
     return <Redirect href={`/(app)/${user.role.toLowerCase()}/dashboard`} />;
   }
 

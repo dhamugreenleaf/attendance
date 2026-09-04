@@ -8,7 +8,7 @@ import {
 const createEmployee = async (req, res, next) => {
     try {
         const data = createEmployeeSchema.parse(req.body);
-        const result = await employeeService.createEmployee(data);
+        const result = await employeeService.createEmployee(data, req.user);
         res.status(201).json({ success: true, data: result });
     } catch (error) {
         next(error);
@@ -38,7 +38,7 @@ const updateEmployee = async (req, res, next) => {
     try {
         const { id } = employeeIdSchema.parse(req.params);
         const data = updateEmployeeSchema.parse(req.body);
-        const result = await employeeService.updateEmployee(id, data);
+        const result = await employeeService.updateEmployee(id, data, req.user);
         res.status(200).json({ success: true, data: result });
     } catch (error) {
         next(error);

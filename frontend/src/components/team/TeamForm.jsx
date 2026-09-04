@@ -1,16 +1,19 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, Switch } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 import { spacing } from '../../styles/spacing';
+import { colors } from '../../styles/colors';
+import { typography } from '../../styles/typography';
 
 const teamSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(100),
-  departmentId: z.coerce.number().int().positive("Valid Department ID required"),
-  managerId: z.coerce.number().int().positive("Valid Manager ID required").optional().or(z.literal('')),
+  managerName: z.string().trim().optional().or(z.literal('')),
+  employeeCount: z.union([z.coerce.number().int().min(0), z.literal('')]).optional(),
   status: z.enum(["ACTIVE", "INACTIVE"]).default("ACTIVE"),
 });
 
@@ -19,29 +22,33 @@ export const TeamForm = ({ defaultValues, onSubmit, isSubmitting }) => {
     resolver: zodResolver(teamSchema),
     defaultValues: defaultValues || {
       name: '',
-      departmentId: '',
-      managerId: '',
+      managerName: '',
+      employeeCount: '',
       status: 'ACTIVE'
     }
   });
 
   const submitHandler = (data) => {
-    // If managerId is empty string, convert to undefined
-    if (data.managerId === '') {
-      data.managerId = undefined;
+    if (data.managerName === '') {
+      data.managerName = undefined;
+    }
+    if (data.employeeCount === '') {
+      data.employeeCount = undefined;
     }
     onSubmit(data);
   };
 
   return (
-    <View style={styles.form}>
+    <Card style={styles.formCard}>
+      <Text style={styles.title}>Team Details</Text>
+
       <Controller
         control={control}
         name="name"
         render={({ field: { onChange, value } }) => (
           <Input
             label="Team Name"
-            placeholder="e.g. Engineering Alpha"
+            placeholder="e.g. HR Team"
             value={value}
             onChangeText={onChange}
             error={errors.name?.message}
@@ -51,62 +58,114 @@ export const TeamForm = ({ defaultValues, onSubmit, isSubmitting }) => {
 
       <Controller
         control={control}
-        name="departmentId"
+        name="managerName"
         render={({ field: { onChange, value } }) => (
           <Input
-            label="Department ID"
-            placeholder="e.g. 1"
-            keyboardType="numeric"
-            value={value?.toString()}
+            label="Team Head"
+            placeholder="Enter Team Head Name"
+            value={value}
             onChangeText={onChange}
-            error={errors.departmentId?.message}
+            error={errors.managerName?.message}
           />
         )}
       />
 
-      <Controller
-        control={control}
-        name="managerId"
-        render={({ field: { onChange, value } }) => (
-          <Input
-            label="Manager ID (Optional)"
-            placeholder="e.g. 5"
-            keyboardType="numeric"
-            value={value?.toString()}
-            onChangeText={onChange}
-            error={errors.managerId?.message}
-          />
-        )}
-      />
+      {!defaultValues && (
+        <Controller
+          control={control}
+          name="employeeCount"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              label="Assign Employees"
+              placeholder="Enter number of employees"
+              value={value?.toString()}
+              onChangeText={onChange}
+              keyboardType="numeric"
+              error={errors.employeeCount?.message}
+            />
+          )}
+        />
+      )}
 
       <Controller
         control={control}
         name="status"
         render={({ field: { onChange, value } }) => (
-          <Input
-            label="Status (ACTIVE or INACTIVE)"
-            placeholder="ACTIVE"
-            autoCapitalize="characters"
-            value={value}
-            onChangeText={onChange}
-            error={errors.status?.message}
-          />
+          <View style={styles.switchContainer}>
+            <View>
+              <Text style={styles.switchLabel}>Team Access</Text>
+              <Text style={styles.switchSubLabel}>{value === 'ACTIVE' ? 'Active' : 'Inactive'}</Text>
+            </View>
+            <Switch
+              trackColor={{ false: colors.border, true: colors.primaryLight }}
+              thumbColor={value === 'ACTIVE' ? colors.primary : colors.textMuted}
+              onValueChange={(val) => onChange(val ? 'ACTIVE' : 'INACTIVE')}
+              value={value === 'ACTIVE'}
+            />
+          </View>
         )}
       />
 
+      {defaultValues && (
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Total Employees</Text>
+          <Text style={styles.infoValue}>{defaultValues.members?.length || 0} Employees</Text>
+        </View>
+      )}
+
       <Button 
-        title="Save Team" 
+        title={defaultValues ? "Update Team" : "Create Team"} 
         onPress={handleSubmit(submitHandler)} 
-        loading={isSubmitting}
+        isLoading={isSubmitting}
         style={styles.submitBtn}
       />
-    </View>
+    </Card>
   );
 };
 
 const styles = StyleSheet.create({
-  form: {
-    padding: spacing.md,
+  formCard: {
+    margin: spacing.md,
+  },
+  title: {
+    fontSize: typography.fontSize.lg,
+    fontWeight: typography.fontWeight.bold,
+    color: colors.primary,
+    marginBottom: spacing.lg,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.xl,
+    paddingVertical: spacing.sm,
+  },
+  switchLabel: {
+    fontSize: typography.fontSize.sm,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  switchSubLabel: {
+    fontSize: typography.fontSize.md,
+    color: colors.textPrimary,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    marginBottom: spacing.md,
+  },
+  infoLabel: {
+    fontSize: typography.fontSize.sm,
+    color: colors.textSecondary,
+  },
+  infoValue: {
+    fontSize: typography.fontSize.md,
+    fontWeight: typography.fontWeight.medium,
+    color: colors.textPrimary,
   },
   submitBtn: {
     marginTop: spacing.md,

@@ -2,8 +2,22 @@ import api from './api';
 
 export const authApi = {
   login: async (credentials) => {
-    // credentials expects { email, password }
     const response = await api.post('/auth/login', credentials);
+    return response.data;
+  },
+
+  signup: async (data) => {
+    const response = await api.post('/auth/signup', data);
+    return response.data;
+  },
+
+  verifyOtp: async (data) => {
+    const response = await api.post('/auth/verify-otp', data);
+    return response.data;
+  },
+
+  changePassword: async (data) => {
+    const response = await api.post('/auth/change-password', data);
     return response.data;
   },
 

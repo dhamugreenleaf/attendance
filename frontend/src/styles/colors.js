@@ -20,8 +20,14 @@ export const colors = {
   
   // Semantic
   success: '#10B981',
+  successLight: '#D1FAE5', // subtle background for present
   warning: '#F59E0B',
+  warningLight: '#FEF3C7', // subtle background for late
   error: '#EF4444',
+  errorLight: '#FEE2E2', // subtle background for absent
   info: '#3B82F6',
+  infoLight: '#DBEAFE',
+  neutral: '#64748B',
+  neutralLight: '#F1F5F9', // subtle background for not marked
 };
 

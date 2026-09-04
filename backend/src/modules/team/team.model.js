@@ -12,11 +12,10 @@ const Team = sequelize.define(
         name: {
             type: DataTypes.STRING(100),
             allowNull: false,
-            unique: true,
         },
         departmentId: {
             type: DataTypes.INTEGER,
-            allowNull: false,
+            allowNull: true,
         },
         managerId: {
             type: DataTypes.INTEGER,

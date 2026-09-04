@@ -37,4 +37,24 @@ const update = async (attendance, data) => {
     return await attendance.update(data);
 };
 
-export { create, findByEmployeeAndDate, findAll, findByEmployeeId, findById, update };
+const bulkUpsert = async (records) => {
+    // Sequelize bulkCreate with updateOnDuplicate works well for upsert
+    return await Attendance.bulkCreate(records, {
+        updateOnDuplicate: ["status", "punchInTime", "updatedAt"]
+    });
+};
+
+const findByTeamAndDate = async (teamId, date) => {
+    return await Attendance.findAll({
+        where: { date },
+        include: [
+            { 
+                model: Employee, 
+                as: "employee", 
+                where: { teamId } 
+            }
+        ],
+    });
+};
+
+export { create, findByEmployeeAndDate, findAll, findByEmployeeId, findById, update, bulkUpsert, findByTeamAndDate };
