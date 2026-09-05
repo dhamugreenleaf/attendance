@@ -17,7 +17,7 @@ const bulkMarkSchema = z.object({
     records: z.array(
         z.object({
             employeeId: z.coerce.number().int().positive(),
-            status: z.enum(["PRESENT", "LATE", "ABSENT", "HALF_DAY", "ON_LEAVE"]),
+            status: z.enum(["PRESENT", "LATE", "ABSENT", "HALF_DAY", "ON_LEAVE", "OVERTIME"]),
         })
     ).min(1, "At least one record is required"),
 });

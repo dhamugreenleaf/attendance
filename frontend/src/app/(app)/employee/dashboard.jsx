@@ -8,37 +8,39 @@ import { colors } from '../../../styles/colors';
 import { spacing } from '../../../styles/spacing';
 import { typography } from '../../../styles/typography';
 import { AttendanceStatus } from '../../../components/attendance/AttendanceStatus';
+import { useLanguage } from '../../../context/LanguageContext';
 
 export default function EmployeeDashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.greeting}>Good Morning,</Text>
-          <Text style={styles.name}>{user?.firstName || user?.email || 'Employee'}</Text>
+          <Text style={styles.greeting}>{t('goodMorning')},</Text>
+          <Text style={styles.name}>{user?.firstName || user?.email || t('employee')}</Text>
         </View>
 
-        <Text style={styles.sectionTitle}>Today's Attendance</Text>
+        <Text style={styles.sectionTitle}>{t('todaysAttendance')}</Text>
         
         <Card style={styles.attendanceCard}>
           <View style={styles.statusRow}>
-            <Text style={styles.statusLabel}>Status:</Text>
+            <Text style={styles.statusLabel}>{t('status')}</Text>
             <AttendanceStatus status={null} />
           </View>
           
           <Text style={styles.timeText}>00:00 Hrs</Text>
-          <Text style={styles.timeLabel}>Working Hours Today</Text>
+          <Text style={styles.timeLabel}>{t('workingHoursToday')}</Text>
 
           <View style={styles.actionButtons}>
             <Button 
-              title="Check In" 
+              title={t('checkIn')} 
               onPress={() => {}} 
               style={styles.actionButton}
             />
             <Button 
-              title="Check Out" 
+              title={t('checkOut')} 
               onPress={() => {}} 
               variant="secondary"
               style={styles.actionButton}
@@ -47,11 +49,11 @@ export default function EmployeeDashboard() {
           </View>
         </Card>
 
-        <Text style={styles.sectionTitle}>My Summary</Text>
+        <Text style={styles.sectionTitle}>{t('mySummary')}</Text>
 
         <View style={styles.statsGrid}>
-          <StatCard title="Leaves Balance" value={null} icon="event-note" />
-          <StatCard title="Permissions" value={null} icon="assignment-ind" />
+          <StatCard title={t('leavesBalance')} value={null} icon="event-note" />
+          <StatCard title={t('permission')} value={null} icon="assignment-ind" />
         </View>
 
       </ScrollView>

@@ -5,13 +5,18 @@ import { Card } from '../../../components/ui/Card';
 import { Button } from '../../../components/ui/Button';
 import { MaterialIcons } from '@expo/vector-icons';
 import { ChangePasswordModal } from '../../../components/profile/ChangePasswordModal';
-import { colors } from '../../../styles/colors';
+import { THEME_COLORS, colors } from '../../../styles/colors';
+import { useAppTheme } from '../../../context/ThemeContext';
+import { useLanguage } from '../../../context/LanguageContext';
 import { spacing, radius } from '../../../styles/spacing';
 import { typography } from '../../../styles/typography';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth();
+  const { primaryColor, setPrimaryColor, currentColors, theme } = useAppTheme();
+  const { language, changeLanguage, languages, t } = useLanguage();
   const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+  const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -25,7 +30,7 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>My Profile</Text>
+          <Text style={styles.title}>{t('myProfile')}</Text>
         </View>
 
         <Card style={styles.profileCard}>
@@ -34,7 +39,7 @@ export default function ProfileScreen() {
               <Text style={styles.avatarText}>{initials}</Text>
             </View>
             <View style={styles.nameContainer}>
-              <Text style={styles.name}>{user?.name || 'Administrator'}</Text>
+              <Text style={styles.name}>{user?.name || t('administrator')}</Text>
               <Text style={styles.role}>{user?.role || 'Admin'}</Text>
             </View>
           </View>
@@ -47,7 +52,7 @@ export default function ProfileScreen() {
             <View style={styles.infoRow}>
               <MaterialIcons name="person" size={20} color={colors.textMuted} />
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Username</Text>
+                <Text style={styles.infoLabel}>{t('username')}</Text>
                 <Text style={styles.infoValue}>{user?.username || 'N/A'}</Text>
               </View>
             </View>
@@ -64,9 +69,51 @@ export default function ProfileScreen() {
           <View style={styles.divider} />
 
           <View style={styles.infoSection}>
+            <Text style={styles.sectionTitle}>{t('appAppearance')}</Text>
+            
+            <View style={styles.appearanceCard}>
+              <Text style={styles.infoLabel}>{t('themeColor')}</Text>
+              <View style={styles.colorSwatchesContainer}>
+                {THEME_COLORS.map((colorHex) => (
+                  <TouchableOpacity 
+                    key={colorHex} 
+                    style={[
+                      styles.colorSwatch, 
+                      { backgroundColor: colorHex },
+                      primaryColor === colorHex && styles.colorSwatchSelected
+                    ]}
+                    onPress={() => setPrimaryColor(colorHex)}
+                  >
+                    {primaryColor === colorHex && (
+                      <MaterialIcons name="check" size={16} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <View style={styles.divider} />
+              
+              <TouchableOpacity 
+                style={styles.infoRow} 
+                onPress={() => setIsLanguageModalVisible(true)}
+              >
+                <View>
+                  <Text style={styles.infoLabel}>{t('language')}</Text>
+                  <Text style={styles.infoValue}>
+                    {languages.find(l => l.code === language)?.label || 'English'}
+                  </Text>
+                </View>
+                <MaterialIcons name="chevron-right" size={24} color={colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.divider} />
+
+          <View style={styles.infoSection}>
             <Text style={styles.sectionTitle}>Security</Text>
             <Button 
-              title="Change Password" 
+              title={t('changePassword')} 
               variant="outline" 
               icon="lock"
               onPress={() => setIsPasswordModalVisible(true)} 
@@ -77,7 +124,7 @@ export default function ProfileScreen() {
 
         <View style={styles.actionsContainer}>
           <Button 
-            title="Log Out" 
+            title={t('logOut')} 
             variant="danger" 
             icon="logout"
             onPress={handleLogout} 
@@ -89,6 +136,39 @@ export default function ProfileScreen() {
         visible={isPasswordModalVisible} 
         onClose={() => setIsPasswordModalVisible(false)} 
       />
+
+      <Modal visible={isLanguageModalVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { minHeight: '40%' }]}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setIsLanguageModalVisible(false)}>
+                <Text style={styles.modalCancel}>{t('cancel')}</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>{t('selectLanguage')}</Text>
+              <View style={{ width: 50 }} />
+            </View>
+            <View style={styles.modalBody}>
+              {languages.map((lang) => (
+                <TouchableOpacity 
+                  key={lang.code}
+                  style={styles.languageItem}
+                  onPress={() => {
+                    changeLanguage(lang.code);
+                    setIsLanguageModalVisible(false);
+                  }}
+                >
+                  <Text style={[styles.languageItemText, language === lang.code && { color: currentColors.primary, fontWeight: 'bold' }]}>
+                    {lang.label}
+                  </Text>
+                  {language === lang.code && (
+                    <MaterialIcons name="check" size={20} color={currentColors.primary} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -181,5 +261,69 @@ const styles = StyleSheet.create({
   },
   actionsContainer: {
     marginTop: spacing.md,
-  }
+  },
+  appearanceCard: {
+    backgroundColor: colors.surface,
+    paddingVertical: spacing.sm,
+  },
+  colorSwatchesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+  },
+  colorSwatch: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  colorSwatchSelected: {
+    borderWidth: 2,
+    borderColor: colors.textPrimary,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    minHeight: '60%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+  },
+  modalCancel: {
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
+  modalBody: {
+    padding: spacing.lg,
+  },
+  languageItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  languageItemText: {
+    fontSize: 16,
+    color: colors.textPrimary,
+  },
 });

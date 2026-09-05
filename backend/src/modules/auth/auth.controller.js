@@ -85,19 +85,62 @@ const changePassword = async (req, res, next) => {
     try {
         const { currentPassword, newPassword } = req.body;
         
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ success: false, message: "Both current and new password are required" });
+        if (!newPassword) {
+            return res.status(400).json({ success: false, message: "New password is required" });
         }
 
-        await authService.changePassword(req.user.id, currentPassword, newPassword);
+        // For temp-password users, currentPassword is not needed
+        const result = await authService.changePassword(
+            req.user.id,
+            currentPassword || '__temp__',
+            newPassword
+        );
 
         return res.status(200).json({
             success: true,
-            message: "Password updated successfully"
+            message: "Password updated successfully",
+            data: { token: result.token }
         });
     } catch (error) {
         next(error);
     }
 };
 
-export { login, signup, verifyOtp, changePassword, getMe };
+// Dedicated endpoint for force-change-password — skips current password check entirely
+const forceChangePassword = async (req, res, next) => {
+    try {
+        const { newPassword } = req.body;
+        
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ success: false, message: "New password must be at least 6 characters" });
+        }
+
+        const result = await authService.forceChangePassword(req.user.id, newPassword);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password updated successfully",
+            data: { token: result.token }
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateProfile = async (req, res, next) => {
+    try {
+        const { username } = req.body;
+        
+        const updatedUser = await authService.updateProfile(req.user.id, { username });
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: updatedUser
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { login, signup, verifyOtp, changePassword, forceChangePassword, getMe, updateProfile };

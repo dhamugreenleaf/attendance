@@ -3,11 +3,15 @@ import { Tabs, Redirect } from 'expo-router';
 import { useAuth } from '../../../hooks/useAuth';
 import { ROLES } from '../../../constants/roles';
 import { BOTTOM_TABS } from '../../../constants/navigation';
-import { colors } from '../../../styles/colors';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Feather } from '@expo/vector-icons';
+import { useAppTheme } from '../../../context/ThemeContext';
+import { useLanguage } from '../../../context/LanguageContext';
+import { TouchableOpacity, View, Text } from 'react-native';
 
 export default function AdminLayout() {
   const { user, isLoading } = useAuth();
+  const { theme, toggleTheme, currentColors } = useAppTheme();
+  const { t } = useLanguage();
 
   if (isLoading) return null;
 
@@ -21,11 +25,29 @@ export default function AdminLayout() {
     <Tabs
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: colors.primary },
-        headerTintColor: colors.surface,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
+        headerStyle: { backgroundColor: currentColors.primary },
+        headerTintColor: currentColors.surface,
+        tabBarActiveTintColor: currentColors.primary,
+        tabBarInactiveTintColor: currentColors.textMuted,
+        tabBarStyle: { backgroundColor: currentColors.surface, borderTopColor: currentColors.border },
+        headerTitle: () => (
+          <Text style={{ 
+            color: currentColors.surface, 
+            fontSize: 22, 
+            fontWeight: '800', 
+            letterSpacing: 1, 
+            fontFamily: 'System' 
+          }}>
+            WorkAxis
+          </Text>
+        ),
+        headerRight: () => (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginRight: 10 }}>
+            <TouchableOpacity onPress={toggleTheme} style={{ marginRight: 15 }}>
+              <Feather name={theme === 'dark' ? 'sun' : 'moon'} size={22} color={currentColors.surface} />
+            </TouchableOpacity>
+          </View>
+        )
       }}
     >
       {tabs.map((tab) => (
@@ -33,7 +55,7 @@ export default function AdminLayout() {
           key={tab.name}
           name={tab.name}
           options={{
-            title: tab.title,
+            title: t(tab.name),
             tabBarIcon: ({ color, size }) => (
               <MaterialIcons name={tab.icon} size={size} color={color} />
             ),

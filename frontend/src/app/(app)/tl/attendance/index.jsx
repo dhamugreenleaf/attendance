@@ -39,6 +39,7 @@ const AttendanceSegmentedControl = ({ value, onChange, disabled }) => {
     { value: 'PRESENT', label: 'P', color: colors.success },
     { value: 'LATE', label: 'L', color: colors.warning },
     { value: 'ABSENT', label: 'A', color: colors.error },
+    { value: 'OVERTIME', label: 'OT', color: '#6366F1' },
   ];
   return (
     <View style={[styles.modernSegmented, disabled && { opacity: 0.6 }]}>
@@ -185,13 +186,14 @@ export default function DefaultAttendanceScreen() {
   };
 
   const getSummary = () => {
-    let p = 0, l = 0, a = 0;
+    let p = 0, l = 0, a = 0, ot = 0;
     Object.values(attendanceState).forEach(status => {
       if (status === 'PRESENT') p++;
       else if (status === 'LATE') l++;
       else if (status === 'ABSENT') a++;
+      else if (status === 'OVERTIME') ot++;
     });
-    return { p, l, a, total: teamMembers.length };
+    return { p, l, a, ot, total: teamMembers.length };
   };
 
   const summary = getSummary();
@@ -270,6 +272,7 @@ export default function DefaultAttendanceScreen() {
                           if (status === 'PRESENT') { cellText = 'P'; cellColor = colors.success; cellBg = colors.success + '15'; }
                           else if (status === 'LATE') { cellText = 'L'; cellColor = colors.warning; cellBg = colors.warning + '15'; }
                           else if (status === 'ABSENT') { cellText = 'A'; cellColor = colors.error; cellBg = colors.error + '15'; }
+                          else if (status === 'OVERTIME') { cellText = 'OT'; cellColor = '#6366F1'; cellBg = '#6366F115'; }
 
                           return (
                             <View key={date} style={styles.dayCol}>
@@ -317,6 +320,7 @@ export default function DefaultAttendanceScreen() {
               <Text style={styles.footerStatText}><Text style={{color: colors.success}}>{summary.p}</Text> P</Text>
               <Text style={styles.footerStatText}> · <Text style={{color: colors.warning}}>{summary.l}</Text> L</Text>
               <Text style={styles.footerStatText}> · <Text style={{color: colors.error}}>{summary.a}</Text> A</Text>
+              <Text style={styles.footerStatText}> · <Text style={{color: '#6366F1'}}>{summary.ot}</Text> OT</Text>
             </View>
           </View>
           {!isSubmitted && (

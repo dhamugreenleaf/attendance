@@ -10,9 +10,11 @@ import { teamApi } from '../../../services/team.api';
 import { colors } from '../../../styles/colors';
 import { spacing, radius } from '../../../styles/spacing';
 import { typography } from '../../../styles/typography';
+import { useLanguage } from '../../../context/LanguageContext';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   
   const [isLoading, setIsLoading] = useState(true);
@@ -94,35 +96,35 @@ export default function AdminDashboard() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.greeting}>Good Morning, {user?.name || user?.username || 'Admin'}</Text>
-          <Text style={styles.title}>Company Attendance</Text>
+          <Text style={styles.greeting}>{user?.name || user?.username || t('administrator')}</Text>
+          <Text style={styles.title}>{t('companyAttendance')}</Text>
         </View>
 
         <View style={styles.metricsGrid}>
           <View style={styles.metricCard}>
             <Text style={styles.metricValue}>{stats.totalEmployees}</Text>
-            <Text style={styles.metricLabel}>Total Employees</Text>
+            <Text style={styles.metricLabel}>{t('totalEmployees')}</Text>
           </View>
           <View style={styles.metricCard}>
             <Text style={styles.metricValue}>{stats.totalTeams}</Text>
-            <Text style={styles.metricLabel}>Total Teams</Text>
+            <Text style={styles.metricLabel}>{t('totalTeams')}</Text>
           </View>
           <View style={[styles.metricCard, styles.metricPresent]}>
             <Text style={[styles.metricValue, { color: colors.success }]}>{stats.present}</Text>
-            <Text style={[styles.metricLabel, { color: colors.success }]}>Present Today</Text>
+            <Text style={[styles.metricLabel, { color: colors.success }]}>{t('presentToday')}</Text>
           </View>
           <View style={[styles.metricCard, styles.metricAbsent]}>
             <Text style={[styles.metricValue, { color: colors.error }]}>{stats.absent}</Text>
-            <Text style={[styles.metricLabel, { color: colors.error }]}>Absent Today</Text>
+            <Text style={[styles.metricLabel, { color: colors.error }]}>{t('absentToday')}</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Teams</Text>
+        <Text style={styles.sectionTitle}>{t('teams')}</Text>
 
         {isLoading ? (
           <ActivityIndicator color={colors.primary} style={{ marginTop: spacing.xl }} />
         ) : teamStats.length === 0 ? (
-          <Text style={styles.emptyText}>No teams created yet.</Text>
+          <Text style={styles.emptyText}>{t('noTeamsCreated')}</Text>
         ) : (
           teamStats.map(team => (
             <Card key={team.id} style={styles.teamCard}>
@@ -131,24 +133,24 @@ export default function AdminDashboard() {
               </View>
               
               <View style={styles.teamInfo}>
-                <Text style={styles.teamInfoLabel}>Head: <Text style={styles.teamInfoValue}>{team.head}</Text></Text>
-                <Text style={styles.teamInfoLabel}>{team.total} Employees</Text>
+                <Text style={styles.teamInfoLabel}>{t('head')}: <Text style={styles.teamInfoValue}>{team.head}</Text></Text>
+                <Text style={styles.teamInfoLabel}>{team.total} {t('employees')}</Text>
               </View>
 
               <View style={styles.teamAttendance}>
-                <Text style={styles.attendanceText}><Text style={styles.presentText}>{team.tPresent} Present</Text> · <Text style={styles.absentText}>{team.tAbsent} Absent</Text></Text>
+                <Text style={styles.attendanceText}><Text style={styles.presentText}>{team.tPresent} {t('present')}</Text> · <Text style={styles.absentText}>{team.tAbsent} {t('absent')}</Text></Text>
               </View>
 
               <View style={styles.teamActions}>
                 <Button 
-                  title="View Team" 
+                  title={t('viewTeam')}
                   variant="outline" 
                   size="small"
                   style={styles.actionBtn}
                   onPress={() => router.push(`/(app)/admin/teams/${team.id}`)}
                 />
                 <Button 
-                  title="Manage" 
+                  title={t('manage')} 
                   variant="outline" 
                   size="small"
                   style={styles.actionBtn}

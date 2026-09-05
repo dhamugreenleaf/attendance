@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, FlatList, ActivityIndicator, TextInput, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useNavigation } from 'expo-router';
 import { useAuth } from '../../../hooks/useAuth';
 import { EmployeeRow } from '../../../components/ui/EmployeeRow';
 import { EmployeeDetailsModal } from '../../../components/team/EmployeeDetailsModal';
@@ -12,6 +13,7 @@ import { typography } from '../../../styles/typography';
 export default function MyTeam() {
   const { user } = useAuth();
   const { width } = useWindowDimensions();
+  const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
   const [teamMembers, setTeamMembers] = useState([]);
   const [filteredMembers, setFilteredMembers] = useState([]);
@@ -60,6 +62,10 @@ export default function MyTeam() {
     setFilteredMembers(filtered);
     setDisplayedCount(10); // Reset infinite scroll on search or sort change
   }, [searchQuery, teamMembers]);
+
+  useEffect(() => {
+    navigation.setOptions({ headerTitle: teamName, title: 'Team' });
+  }, [teamName, navigation]);
 
   const loadTeam = async () => {
     try {
@@ -131,12 +137,12 @@ export default function MyTeam() {
     <SafeAreaView style={styles.safeArea}>
       <View style={[styles.mainWrapper, isWideScreen && styles.mainWrapperWide]}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.headerTitle}>{teamName}</Text>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle} numberOfLines={1}>Team Members</Text>
             <Text style={styles.headerSubtitle}>{filteredMembers.length} Members</Text>
           </View>
           <TouchableOpacity style={styles.addButton} onPress={handleAddEmployee}>
-            <MaterialIcons name="person-add" size={20} color={colors.surface} />
+            <MaterialIcons name="person-add" size={16} color={colors.surface} />
             <Text style={styles.addButtonText}>Add Employee</Text>
           </TouchableOpacity>
         </View>
@@ -212,11 +218,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  headerTextContainer: {
+    flex: 1,
+    marginRight: spacing.sm,
+  },
   headerTitle: {
-    fontSize: typography.fontSize.xxl,
+    fontSize: typography.fontSize.xl,
     fontWeight: typography.fontWeight.bold,
     color: colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   headerSubtitle: {
     fontSize: typography.fontSize.sm,
@@ -228,7 +238,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
     borderRadius: radius.md,
     ...Platform.select({
       ios: {
@@ -248,6 +258,7 @@ const styles = StyleSheet.create({
   },
   addButtonText: {
     color: colors.surface,
+    fontSize: 13,
     fontWeight: typography.fontWeight.semibold,
     marginLeft: spacing.xs,
   },
@@ -284,7 +295,7 @@ const styles = StyleSheet.create({
   searchInput: {
     flex: 1,
     paddingVertical: spacing.md,
-    fontSize: typography.fontSize.sm,
+    fontSize: 12,
     color: colors.textPrimary,
     outlineStyle: 'none', // For Web
   },

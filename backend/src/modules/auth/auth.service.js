@@ -93,6 +93,7 @@ const createAdminUser = async (userData) => {
     return { user: userResponse, token };
 };
 
+// Used from profile change-password modal — verifies current password first
 const changePassword = async (userId, currentPassword, newPassword) => {
     const user = await User.findByPk(userId);
     
@@ -101,22 +102,74 @@ const changePassword = async (userId, currentPassword, newPassword) => {
         error.statusCode = 404;
         throw error;
     }
-    
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    
-    if (!isMatch) {
-        const error = new Error("Current password is incorrect");
-        error.statusCode = 400;
-        throw error;
+
+    // Skip check for temp-password users — already handled at controller level
+    if (!user.isTemporaryPassword) {
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            const error = new Error("Current password is incorrect");
+            error.statusCode = 400;
+            throw error;
+        }
     }
     
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
     user.password = hashedPassword;
     user.isTemporaryPassword = false;
     await user.save();
+
+    const token = jwt.sign(
+        { id: user.id, role: user.role, isTemporaryPassword: false },
+        process.env.JWT_SECRET || "defaultsecret",
+        { expiresIn: process.env.JWT_EXPIRE || "30d" }
+    );
     
-    return true;
+    return { success: true, token };
 };
 
-export { login, checkUsernameAvailability, createAdminUser, changePassword };
+// Used from force-change-password screen — NO current password check at all
+const forceChangePassword = async (userId, newPassword) => {
+    const user = await User.findByPk(userId);
+    
+    if (!user) {
+        const error = new Error("User not found");
+        error.statusCode = 404;
+        throw error;
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    user.password = hashedPassword;
+    user.isTemporaryPassword = false;
+    await user.save();
+
+    const token = jwt.sign(
+        { id: user.id, role: user.role, isTemporaryPassword: false },
+        process.env.JWT_SECRET || "defaultsecret",
+        { expiresIn: process.env.JWT_EXPIRE || "30d" }
+    );
+    
+    return { success: true, token };
+};
+
+const updateProfile = async (userId, updateData) => {
+    const user = await User.findByPk(userId);
+    
+    if (!user) {
+        const error = new Error("User not found");
+        error.statusCode = 404;
+        throw error;
+    }
+    
+    if (updateData.username && updateData.username !== user.username) {
+        await checkUsernameAvailability(updateData.username);
+    }
+    
+    await user.update(updateData);
+    
+    const userResponse = user.toJSON();
+    delete userResponse.password;
+    
+    return userResponse;
+};
+
+export { login, checkUsernameAvailability, createAdminUser, changePassword, forceChangePassword, updateProfile };

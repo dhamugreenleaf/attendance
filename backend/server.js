@@ -13,6 +13,8 @@ import employeeRoutes from "./src/modules/employee/employee.routes.js";
 import attendanceRoutes from "./src/modules/attendance/attendance.routes.js";
 import leaveRoutes from "./src/modules/leave/leave.routes.js";
 import permissionRoutes from "./src/modules/permission/permission.routes.js";
+import notificationRoutes from "./src/modules/notification/notification.routes.js";
+import { startCronJobs } from "./src/cron/attendanceReminders.js";
 
 
 dotenv.config();
@@ -62,6 +64,7 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/permissions", permissionRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 
 // Global Error Handler
@@ -80,6 +83,9 @@ const startServer = async () => {
     try {
         await connectDB();
         await sequelize.sync({ alter: true });
+
+        // Initialize background tasks
+        startCronJobs();
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);

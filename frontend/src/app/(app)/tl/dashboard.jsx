@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { MaterialIcons, Feather, Octicons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { employeeApi } from '../../../services/employee.api';
 import { colors } from '../../../styles/colors';
 import { spacing, radius } from '../../../styles/spacing';
 import { typography } from '../../../styles/typography';
+import { useLanguage } from '../../../context/LanguageContext';
 
 const getInitials = (name) => {
   if (!name) return 'L';
@@ -16,13 +17,21 @@ const getInitials = (name) => {
 
 export default function TLDashboard() {
   const { user } = useAuth();
+  const { t } = useLanguage();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState({ total: 0, present: 0, absent: 0, late: 0, ot: 0 });
   const [teamName, setTeamName] = useState('My Team');
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const todayStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
   const todayApi = new Date().toISOString().split('T')[0];
+  const timeStr = currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
 
   useFocusEffect(
     useCallback(() => {
@@ -81,9 +90,9 @@ export default function TLDashboard() {
 
   const getGreeting = () => {
     const hr = new Date().getHours();
-    if (hr < 12) return 'Good Morning';
-    if (hr < 17) return 'Good Afternoon';
-    return 'Good Evening';
+    if (hr < 12) return t('goodMorning');
+    if (hr < 17) return t('goodAfternoon');
+    return t('goodEvening');
   };
 
   const totalTracked = stats.present + stats.late + stats.absent;
@@ -101,12 +110,15 @@ export default function TLDashboard() {
           </View>
           <View>
             <Text style={styles.greeting}>{getGreeting()}</Text>
-            <Text style={styles.userName}>{user?.name || user?.firstName || 'Lead'}</Text>
+            <Text style={styles.userName}>{user?.name || user?.firstName || t('teamLead')}</Text>
           </View>
         </View>
-        <View style={styles.dateContainer}>
-          <Octicons name="calendar" size={14} color={colors.textSecondary} />
-          <Text style={styles.dateText}>{todayStr}</Text>
+        <View style={styles.timeDateWrapper}>
+          <Text style={styles.timeText}>{timeStr}</Text>
+          <View style={styles.dateRow}>
+            <Octicons name="calendar" size={12} color={colors.textSecondary} />
+            <Text style={styles.dateText}>{todayStr}</Text>
+          </View>
         </View>
       </View>
 
@@ -114,7 +126,7 @@ export default function TLDashboard() {
         
         {/* Team Context Header */}
         <View style={styles.sectionHeaderWrap}>
-          <Text style={styles.sectionTitle}>Overview</Text>
+          <Text style={styles.sectionTitle}>{t('overview')}</Text>
           <Text style={styles.sectionSubtitle}>{teamName}</Text>
         </View>
 
@@ -127,22 +139,22 @@ export default function TLDashboard() {
               {/* Primary Stats Grid */}
               <View style={styles.statsGrid}>
                 <View style={styles.statCell}>
-                  <Text style={styles.statLabel}>TOTAL</Text>
+                  <Text style={styles.statLabel}>{t('total')}</Text>
                   <Text style={styles.statValue}>{stats.total}</Text>
                 </View>
                 <View style={styles.vDivider} />
                 <View style={styles.statCell}>
-                  <Text style={styles.statLabel}>PRESENT</Text>
+                  <Text style={styles.statLabel}>{t('present')}</Text>
                   <Text style={[styles.statValue, { color: colors.success }]}>{stats.present}</Text>
                 </View>
                 <View style={styles.vDivider} />
                 <View style={styles.statCell}>
-                  <Text style={styles.statLabel}>LATE</Text>
+                  <Text style={styles.statLabel}>{t('late')}</Text>
                   <Text style={[styles.statValue, { color: colors.warning }]}>{stats.late}</Text>
                 </View>
                 <View style={styles.vDivider} />
                 <View style={styles.statCell}>
-                  <Text style={styles.statLabel}>ABSENT</Text>
+                  <Text style={styles.statLabel}>{t('absent')}</Text>
                   <Text style={[styles.statValue, { color: colors.error }]}>{stats.absent}</Text>
                 </View>
               </View>
@@ -150,8 +162,8 @@ export default function TLDashboard() {
               {/* Data Visualization */}
               <View style={styles.chartSection}>
                 <View style={styles.chartHeader}>
-                  <Text style={styles.chartLabel}>ATTENDANCE DISTRIBUTION</Text>
-                  <Text style={styles.chartStatus}>{totalTracked}/{stats.total} Logged</Text>
+                  <Text style={styles.chartLabel}>{t('attendanceDistribution')}</Text>
+                  <Text style={styles.chartStatus}>{totalTracked}/{stats.total} {t('logged')}</Text>
                 </View>
                 
                 <View style={styles.progressTrack}>
@@ -169,15 +181,15 @@ export default function TLDashboard() {
                 <View style={styles.legendContainer}>
                   <View style={styles.legendItem}>
                     <View style={[styles.legendIndicator, { backgroundColor: colors.success }]} />
-                    <Text style={styles.legendText}>Present ({pPct.toFixed(0)}%)</Text>
+                    <Text style={styles.legendText}>{t('present')} ({pPct.toFixed(0)}%)</Text>
                   </View>
                   <View style={styles.legendItem}>
                     <View style={[styles.legendIndicator, { backgroundColor: colors.warning }]} />
-                    <Text style={styles.legendText}>Late ({lPct.toFixed(0)}%)</Text>
+                    <Text style={styles.legendText}>{t('late')} ({lPct.toFixed(0)}%)</Text>
                   </View>
                   <View style={styles.legendItem}>
                     <View style={[styles.legendIndicator, { backgroundColor: colors.error }]} />
-                    <Text style={styles.legendText}>Absent ({aPct.toFixed(0)}%)</Text>
+                    <Text style={styles.legendText}>{t('absent')} ({aPct.toFixed(0)}%)</Text>
                   </View>
                 </View>
               </View>
@@ -187,7 +199,7 @@ export default function TLDashboard() {
                 <View style={styles.secondaryMetric}>
                   <MaterialIcons name="schedule" size={16} color="#6366F1" />
                   <Text style={styles.secondaryMetricText}>
-                    <Text style={{ fontWeight: 'bold' }}>{stats.ot}</Text> employees logged overtime
+                    <Text style={{ fontWeight: 'bold' }}>{stats.ot}</Text> {t('employeesLoggedOvertime')}
                   </Text>
                 </View>
               )}
@@ -196,7 +208,7 @@ export default function TLDashboard() {
         </View>
 
         <View style={styles.sectionHeaderWrap}>
-          <Text style={styles.sectionTitle}>Operations</Text>
+          <Text style={styles.sectionTitle}>{t('operations')}</Text>
         </View>
 
         {/* Enterprise List Menu for Actions */}
@@ -210,8 +222,8 @@ export default function TLDashboard() {
               <MaterialIcons name="fact-check" size={20} color={colors.primary} />
             </View>
             <View style={styles.menuTextContent}>
-              <Text style={styles.menuItemTitle}>Mark Attendance</Text>
-              <Text style={styles.menuItemSub}>Daily attendance register</Text>
+              <Text style={styles.menuItemTitle}>{t('markAttendance')}</Text>
+              <Text style={styles.menuItemSub}>{t('dailyAttendanceRegister')}</Text>
             </View>
             <MaterialIcons name="chevron-right" size={24} color={colors.textMuted} />
           </TouchableOpacity>
@@ -227,8 +239,8 @@ export default function TLDashboard() {
               <Feather name="clock" size={20} color="#8b5cf6" />
             </View>
             <View style={styles.menuTextContent}>
-              <Text style={styles.menuItemTitle}>Manage Shifts</Text>
-              <Text style={styles.menuItemSub}>Configure weekly schedules</Text>
+              <Text style={styles.menuItemTitle}>{t('manageShifts')}</Text>
+              <Text style={styles.menuItemSub}>{t('configureWeeklySchedules')}</Text>
             </View>
             <MaterialIcons name="chevron-right" size={24} color={colors.textMuted} />
           </TouchableOpacity>
@@ -285,21 +297,37 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textPrimary,
   },
-  dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  timeDateWrapper: {
+    alignItems: 'flex-end',
     backgroundColor: colors.surfaceSecondary,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
     borderWidth: 1,
     borderColor: colors.border,
-    gap: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  timeText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.primary,
+    marginBottom: 2,
+    letterSpacing: 0.5,
+  },
+  dateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   dateText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.textSecondary,
+    textTransform: 'uppercase',
   },
   scrollContent: {
     padding: spacing.lg,
@@ -326,11 +354,16 @@ const styles = StyleSheet.create({
   // Widget Styling (Clean lines, minimal shadow)
   widgetCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.lg,
     marginBottom: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   statsGrid: {
     flexDirection: 'row',
@@ -432,10 +465,15 @@ const styles = StyleSheet.create({
   // Enterprise Menu List for Operations
   menuCard: {
     backgroundColor: '#FFFFFF',
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: colors.border,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   menuItem: {
     flexDirection: 'row',

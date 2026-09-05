@@ -7,6 +7,7 @@ import Employee from "../modules/employee/employee.model.js";
 import Attendance from "../modules/attendance/attendance.model.js";
 import Leave from "../modules/leave/leave.model.js";
 import Permission from "../modules/permission/permission.model.js";
+import { Notification } from "../modules/notification/notification.model.js";
 
 // --- Relationships ---
 
@@ -40,6 +41,10 @@ Employee.hasMany(Permission, { foreignKey: "employeeId", as: "permissions", onDe
 Permission.belongsTo(Employee, { foreignKey: "employeeId", as: "employee" });
 Permission.belongsTo(User, { foreignKey: "approverId", as: "approver" });
 
+// User 1:N Notification
+User.hasMany(Notification, { foreignKey: "userId", as: "notifications", onDelete: "CASCADE" });
+Notification.belongsTo(User, { foreignKey: "userId", as: "user" });
+
 
 export {
     sequelize,
@@ -49,5 +54,6 @@ export {
     Employee,
     Attendance,
     Leave,
-    Permission
+    Permission,
+    Notification
 };

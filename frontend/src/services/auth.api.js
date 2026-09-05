@@ -21,8 +21,18 @@ export const authApi = {
     return response.data;
   },
 
+  forceChangePassword: async (newPassword) => {
+    const response = await api.post('/auth/force-change-password', { newPassword });
+    return response.data;
+  },
+
   getMe: async () => {
     const response = await api.get('/auth/me');
+    return response.data;
+  },
+
+  updateProfile: async (data) => {
+    const response = await api.put('/auth/update-profile', data);
     return response.data;
   },
 };

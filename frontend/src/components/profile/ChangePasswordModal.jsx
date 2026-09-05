@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Modal, KeyboardAvoidingView, Platform, Alert, Text } from 'react-native';
+import { View, StyleSheet, Modal, KeyboardAvoidingView, Platform, Text } from 'react-native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
+import { useToast } from '../ui/Toast';
 import { authApi } from '../../services/auth.api';
 import { colors } from '../../styles/colors';
 import { spacing, radius } from '../../styles/spacing';
@@ -25,6 +27,8 @@ const passwordSchema = z.object({
 
 export function ChangePasswordModal({ visible, onClose }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const toast = useToast();
 
   const {
     control,
@@ -42,6 +46,7 @@ export function ChangePasswordModal({ visible, onClose }) {
 
   const onSubmit = async (data) => {
     setIsSubmitting(true);
+    setApiError(null);
     try {
       const response = await authApi.changePassword({
         currentPassword: data.currentPassword,
@@ -49,13 +54,14 @@ export function ChangePasswordModal({ visible, onClose }) {
       });
 
       if (response.success) {
-        Alert.alert('Success', 'Password updated successfully!');
+        toast.show('Password updated successfully!', 'success');
         reset();
+        setApiError(null);
         onClose();
       }
     } catch (error) {
       const message = error.response?.data?.message || error.message || 'An error occurred';
-      Alert.alert('Update Failed', message);
+      setApiError(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -72,6 +78,13 @@ export function ChangePasswordModal({ visible, onClose }) {
             <View style={styles.header}>
               <Text style={styles.title}>Change Password</Text>
             </View>
+
+            {apiError && (
+              <View style={styles.errorBanner}>
+                <MaterialIcons name="error-outline" size={16} color={colors.error} />
+                <Text style={styles.errorBannerText}>{apiError}</Text>
+              </View>
+            )}
 
             <Controller
               control={control}
@@ -127,6 +140,7 @@ export function ChangePasswordModal({ visible, onClose }) {
                 variant="outline" 
                 onPress={() => {
                   reset();
+                  setApiError(null);
                   onClose();
                 }} 
                 style={styles.actionButton}
@@ -166,6 +180,23 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.lg,
     fontWeight: typography.fontWeight.bold,
     color: colors.textPrimary,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.error + '15',
+    padding: spacing.md,
+    borderRadius: radius.md,
+    marginBottom: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.error + '30',
+    gap: spacing.sm,
+  },
+  errorBannerText: {
+    flex: 1,
+    color: colors.error,
+    fontSize: typography.fontSize.sm,
+    fontWeight: '600',
   },
   actions: {
     flexDirection: 'row',

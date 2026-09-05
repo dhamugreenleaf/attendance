@@ -54,7 +54,7 @@ export default function Login() {
     >
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.headerContainer}>
-          <Text style={styles.title}>Office Attendance</Text>
+          <Text style={styles.title}>WorkAxis</Text>
           <Text style={styles.subtitle}>Sign in to manage your attendance and team.</Text>
         </View>
 
