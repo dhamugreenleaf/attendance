@@ -30,11 +30,7 @@ export const startCronJobs = () => {
         try {
             console.log('Running pre-shift reminder task');
 
-            // Get today's start and end date for checking attendance
-            const startOfDay = new Date();
-            startOfDay.setHours(0, 0, 0, 0);
-            const endOfDay = new Date();
-            endOfDay.setHours(23, 59, 59, 999);
+            const todayStr = new Date().toISOString().split('T')[0];
 
             const users = await User.findAll({
                 where: { status: 'ACTIVE', role: { [Op.in]: ['EMPLOYEE', 'TL'] } }
@@ -47,10 +43,7 @@ export const startCronJobs = () => {
                 const hasAttendance = await Attendance.findOne({
                     where: {
                         employeeId: employeeProfile.id,
-                        date: {
-                            [Op.gte]: startOfDay,
-                            [Op.lte]: endOfDay
-                        }
+                        date: todayStr
                     }
                 });
 
@@ -73,10 +66,7 @@ export const startCronJobs = () => {
     cron.schedule('0 9-18 * * 1-5', async () => {
         try {
             console.log('Running hourly attendance check task');
-            const startOfDay = new Date();
-            startOfDay.setHours(0, 0, 0, 0);
-            const endOfDay = new Date();
-            endOfDay.setHours(23, 59, 59, 999);
+            const todayStr = new Date().toISOString().split('T')[0];
 
             const users = await User.findAll({
                 where: { status: 'ACTIVE', role: { [Op.in]: ['EMPLOYEE', 'TL'] } }
@@ -90,10 +80,7 @@ export const startCronJobs = () => {
                 const hasAttendance = await Attendance.findOne({
                     where: {
                         employeeId: employeeProfile.id,
-                        date: {
-                            [Op.gte]: startOfDay,
-                            [Op.lte]: endOfDay
-                        }
+                        date: todayStr
                     }
                 });
 

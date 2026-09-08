@@ -25,8 +25,24 @@ const Attendance = sequelize.define(
             type: DataTypes.DATE,
             allowNull: true,
         },
+        otStartTime: {
+            type: DataTypes.TIME,
+            allowNull: true,
+        },
+        otEndTime: {
+            type: DataTypes.TIME,
+            allowNull: true,
+        },
+        permissionStartTime: {
+            type: DataTypes.TIME,
+            allowNull: true,
+        },
+        permissionEndTime: {
+            type: DataTypes.TIME,
+            allowNull: true,
+        },
         status: {
-            type: DataTypes.ENUM("PRESENT", "ABSENT", "LATE", "HALF_DAY", "ON_LEAVE", "OVERTIME"),
+            type: DataTypes.ENUM("PRESENT", "ABSENT", "LATE", "HALF_DAY", "ON_LEAVE", "OVERTIME", "PERMISSION"),
             allowNull: false,
             defaultValue: "ABSENT",
         },

@@ -111,4 +111,44 @@ const getEmployeeAttendanceSummary = async (employeeId, year, month) => {
     };
 };
 
-export { punchIn, punchOut, getAllAttendance, getMyAttendance, bulkMark, getTeamAttendance, getEmployeeAttendanceSummary };
+const markOvertime = async (employeeId, date, otStartTime, otEndTime) => {
+    let attendance = await attendanceRepo.findByEmployeeAndDate(employeeId, date);
+    if (!attendance) {
+        // If no attendance was marked for the day, create a new one with OVERTIME status
+        return await attendanceRepo.create({
+            employeeId,
+            date,
+            status: "OVERTIME",
+            otStartTime,
+            otEndTime
+        });
+    } else {
+        // Update the existing record with OT info and change status to OVERTIME
+        return await attendanceRepo.update(attendance, {
+            status: "OVERTIME",
+            otStartTime,
+            otEndTime
+        });
+    }
+};
+
+const markPermission = async (employeeId, date, permissionStartTime, permissionEndTime) => {
+    let attendance = await attendanceRepo.findByEmployeeAndDate(employeeId, date);
+    if (!attendance) {
+        return await attendanceRepo.create({
+            employeeId,
+            date,
+            status: "PERMISSION",
+            permissionStartTime,
+            permissionEndTime
+        });
+    } else {
+        return await attendanceRepo.update(attendance, {
+            status: "PERMISSION",
+            permissionStartTime,
+            permissionEndTime
+        });
+    }
+};
+
+export { punchIn, punchOut, getAllAttendance, getMyAttendance, bulkMark, getTeamAttendance, getEmployeeAttendanceSummary, markOvertime, markPermission };

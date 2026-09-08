@@ -38,5 +38,15 @@ export const attendanceApi = {
     if (month) params.month = month;
     const response = await api.get(`/attendance/employee/${employeeId}/summary`, { params });
     return response.data;
+  },
+
+  markOvertime: async (employeeId, date, otStartTime, otEndTime) => {
+    const response = await api.post('/attendance/overtime', { employeeId, date, otStartTime, otEndTime });
+    return response.data;
+  },
+
+  markPermission: async (employeeId, date, permissionStartTime, permissionEndTime) => {
+    const response = await api.post('/attendance/permission', { employeeId, date, permissionStartTime, permissionEndTime });
+    return response.data;
   }
 };

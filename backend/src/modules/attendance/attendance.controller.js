@@ -55,7 +55,7 @@ const getTeamAttendance = async (req, res, next) => {
         const teamId = parseInt(req.params.teamId, 10);
         const { date } = teamAttendanceQuerySchema.parse(req.query);
         const queryDate = date || new Date().toISOString().split('T')[0];
-        
+
         const result = await attendanceService.getTeamAttendance(teamId, queryDate);
         res.status(200).json({ success: true, data: result });
     } catch (error) {
@@ -77,4 +77,28 @@ const getEmployeeAttendanceSummary = async (req, res, next) => {
     }
 };
 
-export { punchIn, punchOut, getAllAttendance, getMyAttendance, bulkMark, getTeamAttendance, getEmployeeAttendanceSummary };
+const markOvertime = async (req, res, next) => {
+    try {
+        // import overtimeSchema at the top would be needed if it isn't there, let me add it.
+        // Actually, we can use require or just parse it here since I imported it in the top block separately.
+        const { overtimeSchema } = await import("./attendance.zod.js");
+        const data = overtimeSchema.parse(req.body);
+        const result = await attendanceService.markOvertime(data.employeeId, data.date, data.otStartTime, data.otEndTime);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+const markPermission = async (req, res, next) => {
+    try {
+        const { permissionSchema } = await import("./attendance.zod.js");
+        const data = permissionSchema.parse(req.body);
+        const result = await attendanceService.markPermission(data.employeeId, data.date, data.permissionStartTime, data.permissionEndTime);
+        res.status(200).json({ success: true, data: result });
+    } catch (error) {
+        next(error);
+    }
+};
+
+export { punchIn, punchOut, getAllAttendance, getMyAttendance, bulkMark, getTeamAttendance, getEmployeeAttendanceSummary, markOvertime, markPermission };

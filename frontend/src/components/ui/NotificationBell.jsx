@@ -22,7 +22,9 @@ export function NotificationBell() {
     try {
       const response = await notificationApi.getNotifications();
       if (response.success) {
-        setNotifications(response.data);
+        const todayStr = new Date().toLocaleDateString();
+        const filtered = response.data.filter(n => new Date(n.createdAt).toLocaleDateString() === todayStr);
+        setNotifications(filtered);
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);

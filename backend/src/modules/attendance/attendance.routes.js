@@ -7,6 +7,8 @@ import {
     bulkMark,
     getTeamAttendance,
     getEmployeeAttendanceSummary,
+    markOvertime,
+    markPermission,
 } from "./attendance.controller.js";
 import { authenticate, authorize } from "../../middleware/auth.middleware.js";
 
@@ -25,6 +27,8 @@ router.get("/", authorize("ADMIN", "HR"), getAllAttendance);
 // TLs and Admins can view team attendance and bulk mark
 router.get("/team/:teamId", authorize("ADMIN", "HR", "TL", "MANAGER"), getTeamAttendance);
 router.post("/bulk-mark", authorize("ADMIN", "HR", "TL", "MANAGER"), bulkMark);
+router.post("/overtime", authorize("ADMIN", "HR", "TL", "MANAGER"), markOvertime);
+router.post("/permission", authorize("ADMIN", "HR", "TL", "MANAGER"), markPermission);
 
 // View employee summary
 router.get("/employee/:employeeId/summary", authorize("ADMIN", "HR", "TL", "MANAGER"), getEmployeeAttendanceSummary);

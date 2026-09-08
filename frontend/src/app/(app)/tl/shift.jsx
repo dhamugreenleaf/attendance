@@ -22,7 +22,7 @@ const SHIFTS = {
   OFF:       { key: 'OFF',       label: 'Off', fullLabel: 'Holiday', startTime: null,    endTime: null,    icon: 'slash', color: '#94A3B8', bgLight: '#F1F5F9' },
 };
 
-const WORK_SHIFTS = ['MORNING', 'AFTERNOON', 'NIGHT', 'OFF'];
+const WORK_SHIFTS = ['MORNING', 'AFTERNOON', 'NIGHT'];
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 function getTodayIdx() {
@@ -302,14 +302,14 @@ export default function ManageShifts() {
         {[shifts.MORNING, shifts.AFTERNOON, shifts.NIGHT].map(s => (
           <View key={s.key} style={[styles.legendCard, { backgroundColor: s.bgLight, borderColor: s.color + '40' }]}>
             <View style={styles.legendCardTop}>
-              <Feather name={s.icon} size={12} color={s.color} style={{ marginRight: 4 }} />
-              <Text style={[styles.legendLabel, { color: s.color }]}>{s.fullLabel}</Text>
+              <Feather name={s.icon} size={11} color={s.color} style={{ marginRight: 3 }} />
+              <Text style={[styles.legendLabel, { color: s.color }]} numberOfLines={1} adjustsFontSizeToFit>{s.fullLabel}</Text>
               <TouchableOpacity onPress={() => setEditModal({ visible: true, shift: s })} style={styles.editIconBtn}>
                 <MaterialIcons name="edit" size={12} color={s.color} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.legendTime}>{to12h(s.startTime)} – {to12h(s.endTime)}</Text>
-            <Text style={styles.legendPortal}>🔓 {subtractOneHour(s.startTime)}</Text>
+            <Text style={styles.legendTime} numberOfLines={1} adjustsFontSizeToFit>{to12h(s.startTime)} – {to12h(s.endTime)}</Text>
+            <Text style={styles.legendPortal} numberOfLines={1} adjustsFontSizeToFit>🔓 {subtractOneHour(s.startTime)}</Text>
           </View>
         ))}
       </View>
@@ -419,12 +419,12 @@ const styles = StyleSheet.create({
   dateBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.primary + '15', borderRadius: radius.full, paddingHorizontal: spacing.md, paddingVertical: spacing.xs, borderWidth: 1, borderColor: colors.primary + '30' },
   dateBadgeText: { fontSize: typography.fontSize.sm, fontWeight: typography.fontWeight.bold, color: colors.primary },
   legendBar: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: spacing.sm, paddingVertical: spacing.sm, gap: spacing.sm, backgroundColor: colors.surface, borderBottomWidth: 1, borderBottomColor: colors.border },
-  legendCard: { flex: 1, minWidth: 90, borderRadius: radius.md, padding: spacing.sm, borderWidth: 1 },
-  legendCardTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 },
-  legendLabel: { fontSize: 11, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.3, flex: 1 },
+  legendCard: { flex: 1, minWidth: 85, borderRadius: radius.md, padding: 6, borderWidth: 1 },
+  legendCardTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 2 },
+  legendLabel: { fontSize: 10, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0, flex: 1, marginRight: 2 },
   editIconBtn: { padding: 2 },
-  legendTime: { fontSize: 10, color: colors.textSecondary, fontWeight: '600', marginBottom: 2 },
-  legendPortal: { fontSize: 9, color: colors.textMuted, fontWeight: '500' },
+  legendTime: { fontSize: 9, color: colors.textSecondary, fontWeight: '700', marginBottom: 2 },
+  legendPortal: { fontSize: 9, color: colors.textMuted, fontWeight: '600' },
   container: { padding: spacing.md, paddingBottom: spacing.xxl },
   listCard: {
     backgroundColor: colors.surface, borderRadius: radius.lg, overflow: 'hidden', borderWidth: 1, borderColor: colors.border,

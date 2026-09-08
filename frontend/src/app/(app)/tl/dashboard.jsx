@@ -20,7 +20,7 @@ export default function TLDashboard() {
   const { t } = useLanguage();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [stats, setStats] = useState({ total: 0, present: 0, absent: 0, late: 0, ot: 0 });
+  const [stats, setStats] = useState({ total: 0, present: 0, absent: 0, late: 0, permission: 0, ot: 0 });
   const [teamName, setTeamName] = useState('My Team');
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -65,7 +65,7 @@ export default function TLDashboard() {
         }, {});
       }
 
-      let p = 0, a = 0, l = 0, ot = 0;
+      let p = 0, a = 0, l = 0, pr = 0, ot = 0;
       
       myTeam.forEach(emp => {
         const att = attendanceMap[emp.id];
@@ -74,13 +74,14 @@ export default function TLDashboard() {
         if (status === 'PRESENT') p++;
         else if (status === 'LATE') l++;
         else if (status === 'ABSENT' || status === 'ON_LEAVE' || status === 'HALF_DAY') a++;
+        else if (status === 'PERMISSION') pr++;
         
         if (att && att.overtimeMinutes > 0) {
           ot++;
         }
       });
 
-      setStats({ total: myTeam.length, present: p, absent: a, late: l, ot });
+      setStats({ total: myTeam.length, present: p, absent: a, late: l, permission: pr, ot });
     } catch (error) {
       console.error('Failed to load TL dashboard data', error);
     } finally {
@@ -95,10 +96,11 @@ export default function TLDashboard() {
     return t('goodEvening');
   };
 
-  const totalTracked = stats.present + stats.late + stats.absent;
+  const totalTracked = stats.present + stats.late + stats.absent + stats.permission;
   const pPct = totalTracked ? (stats.present / totalTracked) * 100 : 0;
   const lPct = totalTracked ? (stats.late / totalTracked) * 100 : 0;
   const aPct = totalTracked ? (stats.absent / totalTracked) * 100 : 0;
+  const prPct = totalTracked ? (stats.permission / totalTracked) * 100 : 0;
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -139,23 +141,28 @@ export default function TLDashboard() {
               {/* Primary Stats Grid */}
               <View style={styles.statsGrid}>
                 <View style={styles.statCell}>
-                  <Text style={styles.statLabel}>{t('total')}</Text>
-                  <Text style={styles.statValue}>{stats.total}</Text>
+                  <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('total')}</Text>
+                  <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>{stats.total}</Text>
                 </View>
                 <View style={styles.vDivider} />
                 <View style={styles.statCell}>
-                  <Text style={styles.statLabel}>{t('present')}</Text>
-                  <Text style={[styles.statValue, { color: colors.success }]}>{stats.present}</Text>
+                  <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('present')}</Text>
+                  <Text style={[styles.statValue, { color: colors.success }]} numberOfLines={1} adjustsFontSizeToFit>{stats.present}</Text>
                 </View>
                 <View style={styles.vDivider} />
                 <View style={styles.statCell}>
-                  <Text style={styles.statLabel}>{t('late')}</Text>
-                  <Text style={[styles.statValue, { color: colors.warning }]}>{stats.late}</Text>
+                  <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('late')}</Text>
+                  <Text style={[styles.statValue, { color: colors.warning }]} numberOfLines={1} adjustsFontSizeToFit>{stats.late}</Text>
                 </View>
                 <View style={styles.vDivider} />
                 <View style={styles.statCell}>
-                  <Text style={styles.statLabel}>{t('absent')}</Text>
-                  <Text style={[styles.statValue, { color: colors.error }]}>{stats.absent}</Text>
+                  <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>{t('absent')}</Text>
+                  <Text style={[styles.statValue, { color: colors.error }]} numberOfLines={1} adjustsFontSizeToFit>{stats.absent}</Text>
+                </View>
+                <View style={styles.vDivider} />
+                <View style={styles.statCell}>
+                  <Text style={styles.statLabel} numberOfLines={1} adjustsFontSizeToFit>PERM.</Text>
+                  <Text style={[styles.statValue, { color: colors.info }]} numberOfLines={1} adjustsFontSizeToFit>{stats.permission}</Text>
                 </View>
               </View>
 
@@ -174,6 +181,7 @@ export default function TLDashboard() {
                       {pPct > 0 && <View style={[styles.progressBar, { width: `${pPct}%`, backgroundColor: colors.success }]} />}
                       {lPct > 0 && <View style={[styles.progressBar, { width: `${lPct}%`, backgroundColor: colors.warning }]} />}
                       {aPct > 0 && <View style={[styles.progressBar, { width: `${aPct}%`, backgroundColor: colors.error }]} />}
+                      {prPct > 0 && <View style={[styles.progressBar, { width: `${prPct}%`, backgroundColor: colors.info }]} />}
                     </>
                   )}
                 </View>
@@ -190,6 +198,10 @@ export default function TLDashboard() {
                   <View style={styles.legendItem}>
                     <View style={[styles.legendIndicator, { backgroundColor: colors.error }]} />
                     <Text style={styles.legendText}>{t('absent')} ({aPct.toFixed(0)}%)</Text>
+                  </View>
+                  <View style={styles.legendItem}>
+                    <View style={[styles.legendIndicator, { backgroundColor: colors.info }]} />
+                    <Text style={styles.legendText}>Perm. ({prPct.toFixed(0)}%)</Text>
                   </View>
                 </View>
               </View>
@@ -374,6 +386,7 @@ const styles = StyleSheet.create({
   statCell: {
     alignItems: 'center',
     flex: 1,
+    minWidth: 0,
   },
   vDivider: {
     width: 1,
@@ -387,7 +400,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
     color: colors.textPrimary,
   },
@@ -428,7 +441,9 @@ const styles = StyleSheet.create({
   },
   legendContainer: {
     flexDirection: 'row',
-    gap: spacing.md,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: spacing.sm,
   },
   legendItem: {
     flexDirection: 'row',
