@@ -31,6 +31,8 @@ const translations = {
     employees: 'Employees',
     teams: 'Teams',
     attendance: 'Attendance',
+    plans: 'Plans',
+    subscriptions: 'Subscriptions',
     profile: 'Profile',
     home: 'Home',
     leave: 'Leave',

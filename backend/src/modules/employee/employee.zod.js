@@ -9,6 +9,8 @@ const createEmployeeSchema = z.object({
     name: z.string().trim().min(2).optional(),
     email: z.string().email().optional(),
     password: z.string().min(6).optional(),
+    approvalStatus: z.enum(["APPROVED", "PENDING", "REJECTED"]).optional(),
+    status: z.enum(["ACTIVE", "INACTIVE"]).optional(),
 });
 
 const updateEmployeeSchema = createEmployeeSchema.partial();

@@ -25,15 +25,16 @@ export function ToastProvider({ children }) {
 
     setToast({ message, type });
 
+    const useNative = Platform.OS !== 'web';
     Animated.parallel([
-      Animated.spring(opacity, { toValue: 1, useNativeDriver: true, tension: 80, friction: 10 }),
-      Animated.spring(translateY, { toValue: 0, useNativeDriver: true, tension: 80, friction: 10 }),
+      Animated.spring(opacity, { toValue: 1, useNativeDriver: useNative, tension: 80, friction: 10 }),
+      Animated.spring(translateY, { toValue: 0, useNativeDriver: useNative, tension: 80, friction: 10 }),
     ]).start();
 
     timerRef.current = setTimeout(() => {
       Animated.parallel([
-        Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: true }),
-        Animated.timing(translateY, { toValue: -20, duration: 300, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 0, duration: 300, useNativeDriver: useNative }),
+        Animated.timing(translateY, { toValue: -20, duration: 300, useNativeDriver: useNative }),
       ]).start(() => setToast(null));
     }, duration);
   }, []);
@@ -47,9 +48,8 @@ export function ToastProvider({ children }) {
         <Animated.View
           style={[
             styles.toast,
-            { opacity, transform: [{ translateY }], backgroundColor: def.bg, borderColor: def.border }
+            { opacity, transform: [{ translateY }], backgroundColor: def.bg, borderColor: def.border, pointerEvents: 'none' }
           ]}
-          pointerEvents="none"
         >
           <MaterialIcons name={def.icon} size={20} color={def.color} style={{ marginRight: spacing.sm }} />
           <Text style={[styles.toastText, { color: def.color }]} numberOfLines={2}>

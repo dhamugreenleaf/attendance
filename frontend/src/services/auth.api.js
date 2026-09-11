@@ -21,8 +21,9 @@ export const authApi = {
     return response.data;
   },
 
-  forceChangePassword: async (newPassword) => {
-    const response = await api.post('/auth/force-change-password', { newPassword });
+  forceChangePassword: async (data) => {
+    const payload = typeof data === 'string' ? { newPassword: data } : data;
+    const response = await api.post('/auth/force-change-password', payload);
     return response.data;
   },
 

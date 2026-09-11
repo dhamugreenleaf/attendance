@@ -9,7 +9,7 @@ const create = async (data) => {
 const findAll = async () => {
     return await Employee.findAll({
         include: [
-            { model: User, as: "user", attributes: ["id", "name", "email", "role"] },
+            { model: User, as: "user", attributes: ["id", "name", "email", "role", "status"] },
             { model: Team, as: "team", attributes: ["id", "name", "managerId"] },
         ],
         order: [["id", "DESC"]],
@@ -19,7 +19,7 @@ const findAll = async () => {
 const findById = async (id) => {
     return await Employee.findByPk(id, {
         include: [
-            { model: User, as: "user", attributes: ["id", "name", "email", "role"] },
+            { model: User, as: "user", attributes: ["id", "name", "email", "role", "status"] },
             { model: Team, as: "team", attributes: ["id", "name", "managerId"] },
         ],
     });

@@ -138,14 +138,16 @@ const updateEmployee = async (id, data, user = null) => {
         }
     }
     
-    // Update name in user model if provided
-    if (data.name && employee.userId) {
+    // Update name / status in user model if provided
+    if (employee.userId && (data.name || data.status)) {
         const empUser = await userRepo.findById(employee.userId);
         if (empUser) {
-            empUser.name = data.name;
+            if (data.name) empUser.name = data.name;
+            if (data.status) empUser.status = data.status;
             await empUser.save();
         }
-        delete data.name; // don't pass to employee update
+        delete data.name;
+        delete data.status;
     }
 
     return await employeeRepo.update(employee, data);

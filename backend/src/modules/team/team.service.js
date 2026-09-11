@@ -8,11 +8,37 @@ const createTeam = async (data) => {
     let finalManagerId = null;
     let tempPassword = null;
     let managerUsername = null;
+    const bcrypt = await import("bcryptjs");
 
-    if (data.managerName) {
-        // Find user by name to use as manager
+    if (data.managerId) {
+        let managerUser = await User.findByPk(data.managerId);
+        if (managerUser) {
+            finalManagerId = managerUser.id;
+            managerUsername = managerUser.username;
+
+            // If user is not yet TL or temporary credentials explicitly requested
+            if (managerUser.role !== 'TL' || data.generateCredentials) {
+                managerUser.role = 'TL';
+                managerUser.isTemporaryPassword = true;
+                tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
+                managerUser.password = await bcrypt.hash(tempPassword, 10);
+                await managerUser.save();
+            }
+
+            // Ensure employee designation is Team Head
+            let empRecord = await Employee.findOne({ where: { userId: finalManagerId } });
+            if (!empRecord) {
+                await Employee.create({
+                    userId: finalManagerId,
+                    designation: "Team Head",
+                });
+            } else {
+                empRecord.designation = "Team Head";
+                await empRecord.save();
+            }
+        }
+    } else if (data.managerName) {
         let managerUser = await User.findOne({ where: { name: data.managerName } });
-        const bcrypt = await import("bcryptjs");
 
         if (!managerUser) {
             managerUsername = data.managerName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
@@ -28,21 +54,16 @@ const createTeam = async (data) => {
                 isTemporaryPassword: true
             });
         } else {
-            // Upgrade them to TL
             managerUser.role = 'TL';
             managerUser.isTemporaryPassword = true;
-            
-            // Generate new temporary password
             tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
             managerUser.password = await bcrypt.hash(tempPassword, 10);
             await managerUser.save();
-            
             managerUsername = managerUser.username;
         }
 
         finalManagerId = managerUser.id;
         
-        // Ensure they have an employee record as Team Head
         let empRecord = await Employee.findOne({ where: { userId: finalManagerId } });
         if (!empRecord) {
             await Employee.create({
@@ -55,10 +76,20 @@ const createTeam = async (data) => {
         }
     }
 
+    let finalDepartmentId = data.departmentId || null;
+    const rawDeptName = (data.departmentName || data.department || '').trim();
+    if (rawDeptName) {
+        let dept = await departmentRepo.findByName(rawDeptName);
+        if (!dept) {
+            dept = await departmentRepo.create({ name: rawDeptName, status: "ACTIVE" });
+        }
+        finalDepartmentId = dept.id;
+    }
+
     const payload = {
         name: data.name,
-        status: data.status,
-        departmentId: null,
+        status: data.status || 'ACTIVE',
+        departmentId: finalDepartmentId,
         managerId: finalManagerId
     };
 
@@ -72,9 +103,8 @@ const createTeam = async (data) => {
         );
     }
     
-    // Create dummy employees if employeeCount is provided
+    // Create dummy employees if employeeCount is explicitly provided
     if (data.employeeCount && data.employeeCount > 0) {
-        const bcrypt = await import("bcryptjs");
         const defaultPassword = await bcrypt.hash("password123", 10);
         
         for (let i = 0; i < data.employeeCount; i++) {
@@ -108,16 +138,41 @@ const createTeam = async (data) => {
     return result;
 };
 
-const getTeams = async () => {
-    return await teamRepo.findAll();
+const getTeams = async (user) => {
+    const teams = await teamRepo.findAll();
+    
+    if (user && (user.role === 'TL' || user.role === 'TEAM_LEAD')) {
+        return teams.filter(t => t.managerId === user.id);
+    }
+    if (user && user.role === 'EMPLOYEE') {
+        const emp = await Employee.findOne({ where: { userId: user.id } });
+        if (!emp || !emp.teamId) return [];
+        return teams.filter(t => t.id === emp.teamId);
+    }
+    return teams;
 };
 
-const getTeamById = async (id) => {
+const getTeamById = async (id, user) => {
     const team = await teamRepo.findById(id);
     if (!team) {
         const err = new Error("Team not found");
         err.statusCode = 404;
         throw err;
+    }
+    if (user && (user.role === 'TL' || user.role === 'TEAM_LEAD')) {
+        if (team.managerId !== user.id) {
+            const err = new Error("Access denied to this team");
+            err.statusCode = 403;
+            throw err;
+        }
+    }
+    if (user && user.role === 'EMPLOYEE') {
+        const emp = await Employee.findOne({ where: { userId: user.id } });
+        if (!emp || emp.teamId !== team.id) {
+            const err = new Error("Access denied to this team");
+            err.statusCode = 403;
+            throw err;
+        }
     }
     return team;
 };
@@ -130,17 +185,56 @@ const updateTeam = async (id, data) => {
         throw err;
     }
 
-    const updatePayload = { ...data };
+    const updatePayload = {};
+    let tempPassword = null;
+    let managerUsername = null;
+    const bcrypt = await import("bcryptjs");
 
-    if (data.managerName !== undefined) {
+    if (data.name !== undefined) updatePayload.name = data.name;
+    if (data.status !== undefined) updatePayload.status = data.status;
+    if (data.departmentId !== undefined) updatePayload.departmentId = data.departmentId || null;
+
+    const rawDeptName = (data.departmentName || data.department || '').trim();
+    if (rawDeptName) {
+        let dept = await departmentRepo.findByName(rawDeptName);
+        if (!dept) {
+            dept = await departmentRepo.create({ name: rawDeptName, status: "ACTIVE" });
+        }
+        updatePayload.departmentId = dept.id;
+    }
+
+    if (data.managerId !== undefined) {
+        if (!data.managerId) {
+            updatePayload.managerId = null;
+        } else {
+            let manager = await User.findByPk(data.managerId);
+            if (manager) {
+                updatePayload.managerId = manager.id;
+                managerUsername = manager.username;
+
+                if (manager.role !== 'TL' || data.generateCredentials) {
+                    manager.role = 'TL';
+                    manager.isTemporaryPassword = true;
+                    tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
+                    manager.password = await bcrypt.hash(tempPassword, 10);
+                    await manager.save();
+                }
+
+                let empRecord = await Employee.findOne({ where: { userId: manager.id } });
+                if (empRecord) {
+                    empRecord.designation = "Team Head";
+                    await empRecord.save();
+                }
+            }
+        }
+    } else if (data.managerName !== undefined) {
         if (data.managerName === "") {
             updatePayload.managerId = null;
         } else {
             let manager = await User.findOne({ where: { name: data.managerName } });
             if (!manager) {
-                const bcrypt = await import("bcryptjs");
-                const managerUsername = data.managerName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
-                const tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
+                managerUsername = data.managerName.toLowerCase().replace(/\s+/g, '') + Math.floor(Math.random() * 1000);
+                tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
                 const hashedPassword = await bcrypt.hash(tempPassword, 10);
                 
                 manager = await User.create({
@@ -156,13 +250,45 @@ const updateTeam = async (id, data) => {
                     userId: manager.id,
                     designation: "Team Head",
                 });
+            } else if (data.generateCredentials || manager.role !== 'TL') {
+                manager.role = 'TL';
+                manager.isTemporaryPassword = true;
+                tempPassword = Math.floor(100000 + Math.random() * 900000).toString();
+                manager.password = await bcrypt.hash(tempPassword, 10);
+                await manager.save();
+                managerUsername = manager.username;
             }
             updatePayload.managerId = manager.id;
         }
-        delete updatePayload.managerName;
     }
 
-    return await teamRepo.update(team, updatePayload);
+    // Handle employee assignment
+    if (data.employeeIds !== undefined && Array.isArray(data.employeeIds)) {
+        await Employee.update({ teamId: null }, { where: { teamId: id } });
+        if (data.employeeIds.length > 0) {
+            await Employee.update({ teamId: id }, { where: { id: data.employeeIds } });
+        }
+    }
+
+    if (data.addEmployeeIds && data.addEmployeeIds.length > 0) {
+        await Employee.update({ teamId: id }, { where: { id: data.addEmployeeIds } });
+    }
+
+    if (data.removeEmployeeIds && data.removeEmployeeIds.length > 0) {
+        await Employee.update({ teamId: null }, { where: { id: data.removeEmployeeIds } });
+    }
+
+    const updatedTeam = await teamRepo.update(team, updatePayload);
+    const result = updatedTeam.toJSON ? updatedTeam.toJSON() : updatedTeam;
+
+    if (managerUsername && tempPassword) {
+        result.credentials = {
+            username: managerUsername,
+            password: tempPassword
+        };
+    }
+
+    return result;
 };
 
 const deleteTeam = async (id) => {
@@ -172,6 +298,9 @@ const deleteTeam = async (id) => {
         err.statusCode = 404;
         throw err;
     }
+
+    // Unassign members before deletion
+    await Employee.update({ teamId: null }, { where: { teamId: id } });
 
     await teamRepo.remove(team);
     return { id, message: "Team deleted successfully" };

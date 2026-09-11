@@ -17,7 +17,7 @@ const createTeam = async (req, res, next) => {
 
 const getTeams = async (req, res, next) => {
     try {
-        const result = await teamService.getTeams();
+        const result = await teamService.getTeams(req.user);
         res.status(200).json({ success: true, data: result });
     } catch (error) {
         next(error);
@@ -27,7 +27,7 @@ const getTeams = async (req, res, next) => {
 const getTeamById = async (req, res, next) => {
     try {
         const { id } = teamIdSchema.parse(req.params);
-        const result = await teamService.getTeamById(id);
+        const result = await teamService.getTeamById(id, req.user);
         res.status(200).json({ success: true, data: result });
     } catch (error) {
         next(error);

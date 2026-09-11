@@ -127,14 +127,23 @@ const changePassword = async (userId, currentPassword, newPassword) => {
     return { success: true, token };
 };
 
-// Used from force-change-password screen — NO current password check at all
-const forceChangePassword = async (userId, newPassword) => {
+// Used from force-change-password screen — validates old password if provided
+const forceChangePassword = async (userId, newPassword, oldPassword) => {
     const user = await User.findByPk(userId);
     
     if (!user) {
         const error = new Error("User not found");
         error.statusCode = 404;
         throw error;
+    }
+
+    if (oldPassword) {
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+            const error = new Error("Old password is incorrect");
+            error.statusCode = 400;
+            throw error;
+        }
     }
     
     const hashedPassword = await bcrypt.hash(newPassword, 12);

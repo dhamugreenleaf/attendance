@@ -106,16 +106,17 @@ const changePassword = async (req, res, next) => {
     }
 };
 
-// Dedicated endpoint for force-change-password — skips current password check entirely
+// Dedicated endpoint for force-change-password — validates old password if supplied
 const forceChangePassword = async (req, res, next) => {
     try {
-        const { newPassword } = req.body;
+        const { newPassword, oldPassword, currentPassword } = req.body;
+        const enteredOldPassword = oldPassword || currentPassword;
         
         if (!newPassword || newPassword.length < 6) {
             return res.status(400).json({ success: false, message: "New password must be at least 6 characters" });
         }
 
-        const result = await authService.forceChangePassword(req.user.id, newPassword);
+        const result = await authService.forceChangePassword(req.user.id, newPassword, enteredOldPassword);
 
         return res.status(200).json({
             success: true,
@@ -129,9 +130,13 @@ const forceChangePassword = async (req, res, next) => {
 
 const updateProfile = async (req, res, next) => {
     try {
-        const { username } = req.body;
+        const { username, name, email } = req.body;
+        const updateData = {};
+        if (username) updateData.username = username;
+        if (name) updateData.name = name;
+        if (email) updateData.email = email;
         
-        const updatedUser = await authService.updateProfile(req.user.id, { username });
+        const updatedUser = await authService.updateProfile(req.user.id, updateData);
 
         return res.status(200).json({
             success: true,
